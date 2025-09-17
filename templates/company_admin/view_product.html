@@ -1,0 +1,409 @@
+{% extends 'company_admin/base.html' %}
+{% load static %}
+
+{% block title %}Product Details | devRasen{% endblock %}
+{% block content %}
+
+<style>
+:root {
+    --primary-red: #601F2F;
+    --primary-orange: #ffb347;
+    --accent-yellow: #fc3;
+    --light-orange: #fff5e6;
+    --dark-red: #4a1824;
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --transition: all 0.3s ease;
+}
+
+.user-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255,179,71,0.3);
+}
+
+.user-title {
+    color: transparent;
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #601F2F 10%, #ffb347 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+
+.close-btn {
+    background: linear-gradient(90deg, var(--primary-orange), var(--primary-red));
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.close-btn:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background: linear-gradient(90deg, #601F2F 0%, #ffb347 100%);
+    transform: translateY(-1px);
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    transition: var(--transition);
+    height: 100%;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+
+.card-header {
+    background: linear-gradient(90deg, rgba(255,179,71,0.1), rgba(96,31,47,0.1));
+    color: var(--primary-red);
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255,179,71,0.3);
+    border-radius: 12px 12px 0 0 !important;
+    padding: 15px 20px;
+    font-size: 18px;
+}
+
+.card-header i {
+    color: var(--primary-orange);
+}
+
+.card-body {
+    padding: 25px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.active {
+    background-color: rgba(40, 167, 69, 0.15);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.inactive {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.user-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-orange), var(--primary-red));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: bold;
+    margin-right: 25px;
+    box-shadow: 0 4px 12px rgba(96,31,47,0.2);
+}
+
+.user-profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.user-name {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary-red);
+    margin-bottom: 8px;
+}
+
+.user-role {
+    background: var(--light-orange);
+    color: var(--primary-red);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--primary-orange);
+    display: inline-block;
+}
+
+.info-item {
+    margin-bottom: 12px;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed rgba(96,31,47,0.1);
+    display: flex;
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: var(--primary-red);
+    margin-bottom: 5px;
+    font-size: 14px;
+    opacity: 0.8;
+    margin-right: 8px; 
+    white-space: nowrap; 
+}
+
+.info-value {
+    font-size: 16px;
+    color: #333;
+}
+
+.btn-edit {
+    background: linear-gradient(90deg, var(--primary-orange), var(--primary-red));
+    border: none;
+    padding: 12px 25px;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-edit:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background: linear-gradient(90deg, #601F2F 0%, #ffb347 100%);
+    transform: translateY(-1px);
+}
+
+.price-display {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary-red);
+}
+.mrp-display {
+    text-decoration: line-through;
+    color: #6c757d;
+    font-size: 16px;
+}
+
+.discount-badge {
+    background-color: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 8px;
+}
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.stock-low {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+
+.stock-medium {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.stock-high {
+    background-color: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+}
+.expiry-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.expiry-soon {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+
+.expiry-good {
+    background-color: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+}
+
+
+@media (max-width: 768px) {
+    .user-profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .user-avatar {
+        margin-right: 0;
+        margin-bottom: 20px;
+    }
+    
+    .card-header {
+        font-size: 16px;
+        padding: 12px 15px;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+}
+</style>
+
+<div class="container-fluid mt-4 mb-5">
+    <div class="user-header">
+        <h1 class="user-title">Product Details</h1>
+        <button onclick="window.history.back()" class="close-btn">
+            <i class="fas fa-arrow-left"></i> Back
+        </button>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4 col-md-6 col-sm-12 d-flex">
+            <div class="card mb-4 flex-grow-1">
+                <div class="card-header"><i class="fas fa-id-card me-2"></i>Product Detail</div>
+                <div class="card-body">
+                    <div class="info-item">
+                        <div class="info-label">Product Name</div>
+                        <div class="info-value">{{ product.name }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Product Description</div>
+                        <div class="info-value">{{ product.description }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Category</div>
+                        <div class="info-value">{{ product.category.name }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Unit</div>
+                        <div class="info-value">{{ product.get_unit_display }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 col-sm-12 d-flex">
+            <div class="card mb-4 flex-grow-1">
+                <div class="card-header"><i class="fas fa-tags me-2"></i> Pricing Information</div>
+                <div class="card-body">
+                    <div class="info-item">
+                        <div class="info-label">Sale Price</div>
+                        <div class="info-value price-display">₹{{ product.sale_price }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">MRP</div>
+                        <div class="info-value">₹{{ product.mrp }}</div>
+                        {% if product.mrp > product.sale_price %}
+                            <span class="discount-badge">{{ product.get_discount_percentage }}% OFF</span>
+                        {% endif %}
+                    </div>
+                    
+                    
+                    <div class="info-item">
+                        <div class="info-label">Tax Information</div>
+                        <div class="info-value">SGST: {{ product.sgstpercentage }}% | 
+                                                CGST: {{ product.cgstpercentage }}% | 
+                                                IGST: {{ product.igstpercentage }}%
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">HSN Code</div>
+                        <div class="info-value">{{ product.hsn_code }}</div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 col-sm-12 d-flex">
+            <div class="card mb-4 flex-grow-1">
+                <div class="card-header"><i class="fas fa-boxes me-2"></i> Inventory Information</div>
+                <div class="card-body">
+                    <div class="info-item">
+                        <div class="info-label">Current Stock</div>
+                        <div class="info-value">
+                            <span class="status-badge 
+                        {% if product.quantity <= 10 %}stock-low
+                        {% elif product.quantity <= 50 %}stock-medium
+                        {% else %}stock-high
+                        {% endif %}">
+                        {{ product.quantity }} {{ product.get_unit_display }}
+                    </span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Manufactured Date</div>
+                        <div class="info-value">{{ product.manufactured_date }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Expiry Date</div>
+                        <div class="info-value">
+                            {{ product.expiry_date }}
+                    <span class="expiry-badge 
+                        {% if product.is_expiry_soon %}expiry-soon
+                        {% else %}expiry-good
+                        {% endif %}">
+                        {% if product.is_expiry_soon %}Expiring Soon{% else %}Good{% endif %}
+                    </span>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Batch Number</div>
+                        <div class="info-value">{{ product.batch_number }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Batch Code</div>
+                        <div class="info-value">{{ product.batch_code }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end mt-4">
+        <a href="{% url 'edit_product' product.id %}" class="btn btn-edit text-white">
+            <i class="fas fa-edit"></i> Edit Profile
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+

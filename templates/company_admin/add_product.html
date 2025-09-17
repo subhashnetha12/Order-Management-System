@@ -1,0 +1,174 @@
+{% extends 'company_admin/base.html' %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+    body {
+        background: linear-gradient(120deg, #fff5e6 60%, #fef2e6 100%);
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .card {
+        border-radius: 1.2rem;
+        box-shadow: 0 6px 32px rgba(96, 31, 47, 0.10);
+        width: 100%;
+        max-width: 1300px;
+        margin: 0 auto;
+        border: none;
+        background: #fff;
+    }
+
+    .form-label {
+        font-weight: bold !important;
+        color: #601F2F;
+    }
+
+    .user-btn {
+        background: linear-gradient(90deg, #ffb347 0%, #601F2F 100%);
+        color: #fff;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border: none;
+        box-shadow: 0 2px 8px rgba(255, 179, 71, 0.25);
+    }
+
+    .user-btn:hover {
+        background: linear-gradient(90deg, #601F2F 0%, #ffb347 100%);
+        transform: translateY(-1px);
+    }
+
+    .gradient-title {
+        background: linear-gradient(90deg, #601F2F 10%, #ffb347 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent;
+        font-weight: 700;
+        font-family: 'Poppins', sans-serif;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control, .form-select {
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        border: 1.5px solid #e2e8f0;
+        background: #fdfdfd;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #ffb347;
+        box-shadow: 0 0 0 2px #ffb34733;
+    }
+
+    .input-group-text {
+        background: #fdfdfd;
+    }
+
+    label.form-label {
+        font-weight: 500;
+        letter-spacing: 0.2px;
+    }
+
+    .input-group .btn {
+        border-radius: 0 0.5rem 0.5rem 0;
+    }
+
+    .input-group input {
+        border-radius: 0.5rem 0 0 0.5rem;
+    }
+
+    @media (max-width: 991.98px) {
+        .card {
+            max-width: 98%;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .card {
+            max-width: 100%;
+            padding: 1rem !important;
+        }
+    }
+</style>
+
+<div class="container py-2">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card p-4">
+                <h2 class="text-center mb-4 gradient-title">{% if edit_product %}Edit{% else %}Add{% endif %} Product</h2>
+
+                <form method="post" action="{% if edit_product %}{% url 'edit_product' edit_product.id %}{% else %}{% url 'add_product' %}{% endif %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">Product Name</label>
+                            <input type="text" id="name" name="name" class="form-control" required
+                                value="{{ edit_product.name|default:'' }}" placeholder="Enter product name">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="category" class="form-label">Category</label>
+                            <select id="category" name="category" class="form-select" required>
+                                <option value="" disabled selected hidden>--select category--</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if edit_product and edit_product.category.id == category.id %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea id="description" name="description" class="form-control" rows="2"
+                                    placeholder="Enter product description">{{ edit_product.description|default:'' }}</textarea>
+                        </div>
+
+                        
+
+                        <div class="col-md-4">
+                            <label for="unit" class="form-label">Unit</label>
+                            <select id="unit" name="unit" class="form-select" required>
+                                <option value="" disabled {% if not edit_product %}selected{% endif %} hidden>Select unit</option>
+                                <option value="pkt" {% if edit_product and edit_product.unit == "pkt" %}selected{% endif %}>Packets</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="hsn_code" class="form-label">HSN Code</label>
+                            <input type="text" id="hsn_code" name="hsn_code" class="form-control"
+                                value="{{ edit_product.hsn_code|default:'' }}" placeholder="Enter HSN code">
+                        </div>
+
+                    
+
+
+                        <div class="col-md-4">
+                            <label for="gstpercentage" class="form-label">GST %</label>
+                            <select id="gstpercentage" name="gstpercentage" class="form-control" required>
+                                <option value="" disabled {% if not edit_product %}selected{% endif %} hidden>--Please select GST percentage--</option>
+                                <option value="0" {% if edit_product and edit_product.gstpercentage == 0 %}selected{% endif %}>0</option>
+                                <option value="0.25" {% if edit_product and edit_product.gstpercentage == 0.25 %}selected{% endif %}>0.25</option>
+                                <option value="3" {% if edit_product and edit_product.gstpercentage == 3 %}selected{% endif %}>3</option>
+                                <option value="5" {% if edit_product and edit_product.gstpercentage == 5 %}selected{% endif %}>5</option>
+                                <option value="12" {% if edit_product and edit_product.gstpercentage == 12 %}selected{% endif %}>12</option>
+                                <option value="18" {% if edit_product and edit_product.gstpercentage == 18 %}selected{% endif %}>18</option>
+                                <option value="28" {% if edit_product and edit_product.gstpercentage == 28 %}selected{% endif %}>28</option>
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <button type="submit" class="btn user-btn w-100 mt-4">
+                        <i class="fas fa-user-{% if edit_product %}edit{% else %}plus{% endif %} me-2"></i>
+                        {% if edit_product %} Update {% else %} Add {% endif %} Product
+                    </button>
+                </form>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,527 @@
+{% extends './base.html' %}
+{% block content %}
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>South Sutra Dashboard</title>
+    <style>
+        body {
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .icon-shape {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+        }
+
+        .bg-tertiary {
+            background: #6c63ff !important;
+        }
+
+        .bg-primary {
+            background: #007bff !important;
+        }
+
+        .bg-info {
+            background: #17a2b8 !important;
+        }
+
+        .bg-warning {
+            background: #ffc107 !important;
+        }
+
+        .bg-soft-success {
+            background: #e6f4ea !important;
+        }
+
+        .bg-soft-danger {
+            background: #fbeaea !important;
+        }
+
+        .text-success {
+            color: #28a745 !important;
+        }
+
+        .text-danger {
+            color: #dc3545 !important;
+        }
+
+        .text-muted {
+            color: #6c757d !important;
+        }
+
+        .text-lg {
+            font-size: 1.3rem !important;
+        }
+
+        .font-semibold {
+            font-weight: 600;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        .badge-pill {
+            border-radius: 10rem;
+        }
+
+        .bg-surface-secondary {
+            background: #f8fafc !important;
+        }
+
+        .h-screen {
+            min-height: 100vh;
+        }
+
+        .card-title {
+            font-weight: 600;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            min-height: 300px;
+            height: 400px;
+        }
+
+        .dashboard-section {
+            margin-bottom: 2.5rem;
+        }
+
+        @media (max-width: 991.98px) {
+            .dashboard-section {
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .chart-container {
+                height: 250px;
+                min-height: 200px;
+            }
+
+            .card-title {
+                font-size: 1rem;
+            }
+
+            .dashboard-section {
+                margin-bottom: 1rem;
+            }
+        }
+
+        #pieChart,
+        #lineChart {
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
+        }
+
+        a {
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="d-flex flex-column flex-lg-row h-lg-full bg-surface-secondary mt-3">
+        <div class="h-screen flex-grow-1 overflow-y-lg-auto">
+            <main class="py-6 bg-surface-secondary">
+                <div class="container-fluid">
+                    <!-- Card stats -->
+                    <div class="row g-4 dashboard-section">
+
+                        <div class="col-xl-3 col-sm-6 col-12" id="quantities">
+                            <a href="#">
+                                <div class="card shadow border-0">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <span class="h6 font-semibold text-muted text-sm d-block mb-2">Today
+                                                    Production</span>
+                                                <span class="h3 font-bold mb-0">{{ today_production }}</span>
+                                            </div>
+                                            <div class="col-auto">
+                                                <div
+                                                    class="icon icon-shape bg-primary text-white text-lg rounded-circle">
+                                                    <i class="fa-solid fa fa-users"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-xl-3 col-sm-6 col-12" id="categories">
+                            <a href="#">
+                                <div class="card shadow border-0">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <span
+                                                    class="h6 font-semibold text-muted text-sm d-block mb-2">Categories</span>
+                                                <span class="h3 font-bold mb-0">{{ total_categories }}</span>
+                                            </div>
+                                            <div class="col-auto">
+                                                <div
+                                                    class="icon icon-shape bg-tertiary text-white text-lg rounded-circle">
+                                                    <i class="fa fa-clipboard-list"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="col-xl-3 col-sm-6 col-12" id="products">
+                            <a href="#">
+                                <div class="card shadow border-0">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <span
+                                                    class="h6 font-semibold text-muted text-sm d-block mb-2">Products</span>
+                                                <span class="h3 font-bold mb-0">{{ total_products }}</span>
+                                            </div>
+                                            <div class="col-auto">
+                                                <div
+                                                    class="icon icon-shape bg-tertiary text-white text-lg rounded-circle">
+                                                    <i class="fa fa-clipboard-list"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-xl-3 col-sm-6 col-12" id="quantities">
+                            <a href="#">
+                                <div class="card shadow border-0">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <span
+                                                    class="h6 font-semibold text-muted text-sm d-block mb-2">Quantity</span>
+                                                <span class="h3 font-bold mb-0">{{ total_quantity }}</span>
+                                            </div>
+                                            <div class="col-auto">
+                                                <div
+                                                    class="icon icon-shape bg-primary text-white text-lg rounded-circle">
+                                                    <i class="fa-solid fa fa-users"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+
+
+
+                    </div>
+                    <div class="row g-4 dashboard-section">
+                        <div class="col-xl-3 col-sm-6 col-12" id="customers">
+                            <a href="#">
+                                <div class="card shadow border-0">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <span
+                                                    class="h6 font-semibold text-muted text-sm d-block mb-2">Customers</span>
+                                                <span class="h3 font-bold mb-0">{{ total_customers }}</span>
+                                            </div>
+                                            <div class="col-auto">
+                                                <div
+                                                    class="icon icon-shape bg-tertiary text-white text-lg rounded-circle">
+                                                    <i class="fa fa-clipboard-list"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-xl-3 col-sm-6 col-12" id="profiles">
+                            <a href="#">
+                                <div class="card shadow border-0">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <span
+                                                    class="h6 font-semibold text-muted text-sm d-block mb-2">Staff</span>
+                                                <span class="h3 font-bold mb-0">{{ total_staff }}</span>
+                                            </div>
+                                            <div class="col-auto">
+                                                <div
+                                                    class="icon icon-shape bg-primary text-white text-lg rounded-circle">
+                                                    <i class="fa-solid fa fa-users"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-xl-3 col-sm-6 col-12" id="deliveries">
+                            <a href="#">
+                                <div class="card shadow border-0">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <span class="h6 font-semibold text-muted text-sm d-block mb-2">Pending
+                                                    deliveries</span>
+                                                <span class="h3 font-bold mb-0">{{ pending_deliveries }}</span>
+                                            </div>
+                                            <div class="col-auto">
+                                                <div class="icon icon-shape bg-info text-white text-lg rounded-circle">
+                                                    <i class="fa fa-truck"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-xl-3 col-sm-6 col-12" id="sales">
+                            <a href="#">
+                                <div class="card shadow border-0">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <span
+                                                    class="h6 font-semibold text-muted text-sm d-block mb-2">Sales</span>
+                                                <span class="h3 font-bold mb-0">{{ total_orders }}</span>
+                                            </div>
+                                            <div class="col-auto">
+                                                <div
+                                                    class="icon icon-shape bg-warning text-white text-lg rounded-circle">
+                                                    <i class="fa fa-shopping-cart"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="card shadow-sm p-3 h-100">
+                                <h5 class="header mb-3">Top 5 Customers By Revenue</h5>
+                                <div class="list-group">
+                                    {% for c in top_customers_list %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="badge bg-dark rounded-pill me-2">#{{ forloop.counter }}</span>
+                                            <strong>{{ c.name }}--({{c.shop_name}}-{{c.shop_city}})</strong>
+                                        </div>
+                                        <div class="text-end">
+                                            <div>₹ {{ c.revenue }}</div>
+                                            <small class="text-muted">{{ c.orders }} Orders</small>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <div class="text-center text-muted">No customer data available</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <!-- 🔹 Top 5 Salesmen by Revenue -->
+                            <div class="card shadow-sm p-3 mb-4 h-100">
+                                <h5 class="header mb-3">Top 5 Salesmen By Revenue</h5>
+                                <div class="list-group">
+                                    {% for s in top_salesman_list %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="badge bg-dark rounded-pill me-2">#{{ forloop.counter }}</span>
+                                            <strong>{{ s.first_name }} {{ s.last_name }}</strong>
+                                        </div>
+                                        <div class="text-end">
+                                            <div>₹ {{ s.revenue }}</div>
+                                            <small class="text-muted">{{ s.orders }} Orders</small>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <div class="text-center text-muted">No salesman data available</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-4 dashboard-section">
+                        <div class="col-12 col-md-6">
+                            <div class="card shadow border-0 h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title"></h5>
+                                    <div class="chart-container">
+                                        <canvas id="pieChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="card shadow border-0 h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title"></h5>
+                                    <div class="chart-container">
+                                        <canvas id="lineChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Chart.js -->
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+                    <!-- Pass JSON from Django safely -->
+                    {{ product_distribution|json_script:"product-data" }}
+                    {{ daily_production_data|json_script:"daily-production" }}
+
+
+<script>
+    // Parse the JSON data
+    const productData = JSON.parse(document.getElementById('product-data').textContent);
+    const dailyData = JSON.parse(document.getElementById('daily-production').textContent);
+
+    // --- Pie Chart Data ---
+    let productLabels = [];
+    let productCounts = [];
+
+    if (productData.length === 0) {
+        productLabels = ['No Data'];
+        productCounts = [0];
+    } else {
+        productLabels = productData.map(d => d.product__name);
+        productCounts = productData.map(d => d.total_quantity);
+    }
+
+    // --- Line Chart Data ---
+    let allDates = [...new Set(dailyData.map(d => d.date_only))];
+    let allProducts = [...new Set(dailyData.map(d => d.product__name))];
+
+    let productDatasets = [];
+
+    if (dailyData.length === 0) {
+        allDates = ['No Date'];
+        productDatasets = [{
+            label: 'No Data',
+            data: [0],
+            fill: false,
+            tension: 0.3,
+            borderWidth: 2,
+            borderColor: '#CCCCCC'
+        }];
+    } else {
+        productDatasets = allProducts.map(product => {
+            const data = allDates.map(date => {
+                const match = dailyData.find(d => d.date_only === date && d.product__name === product);
+                return match ? match.total_quantity : 0;
+            });
+
+            return {
+                label: product,
+                data: data,
+                fill: false,
+                tension: 0.3,
+                borderWidth: 2,
+                borderColor: '#' + Math.floor(Math.random() * 16777215).toString(16)
+            };
+        });
+    }
+
+    // --- Pie Chart ---
+    const ctxPie = document.getElementById('pieChart').getContext('2d');
+    const pieChart = new Chart(ctxPie, {
+        type: 'doughnut',
+        data: {
+            labels: productLabels,
+            datasets: [{
+                data: productCounts,
+                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#8E5EA2', '#4BC0C0', '#EC932F', '#AD5389', '#FF9F40'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 10
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Product Wise Sales Distribution',
+                    font: { size: 16 }
+                }
+            },
+            cutout: '60%',
+            maintainAspectRatio: false
+        }
+    });
+
+    // --- Line Chart ---
+    const ctxLine = document.getElementById('lineChart').getContext('2d');
+    const lineChart = new Chart(ctxLine, {
+        type: 'line',
+        data: {
+            labels: allDates,
+            datasets: productDatasets
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 10
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Daily Production by Product',
+                    font: { size: 16 }
+                }
+            },
+            maintainAspectRatio: false
+        }
+    });
+</script>
+
+                   
+
+
+                    
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+
+
+
+{% endblock content %}

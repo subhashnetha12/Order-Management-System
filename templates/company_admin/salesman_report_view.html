@@ -1,0 +1,175 @@
+{% extends 'company_admin/base.html' %}
+{% load static %}
+
+{% block title %}Salesman Report{% endblock %}
+{% block content %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<style>
+    body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+    .card { border-radius: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .profile-card { 
+        background: linear-gradient(135deg, #4e73df, #1cc88a);
+        color: white;
+    }
+    .profile img { 
+        width: 90px; height: 90px; border-radius: 50%; border: 3px solid #fff; object-fit: cover;
+    }
+    .section-title { font-weight: 600; margin-bottom: 15px; color: #333; }
+    .kpi-card { transition: 0.3s; }
+    .kpi-card:hover { transform: translateY(-4px); }
+    .list-group-item { border: none; border-bottom: 1px solid #eee; }
+    .badge-city { font-size: 0.8rem; background: #eef2f7; color: #4e73df; }
+</style>
+
+<div class="container py-4">
+
+   <!-- Salesman Info -->
+    <div class="card p-4 mb-4">
+        <div class="d-flex align-items-center">
+            <!-- Profile Image -->
+            <div class="me-4">
+                {% if salesman.profile_picture %}
+                    <img src="{{ salesman.profile_picture.url }}" 
+                        alt="Profile" 
+                        class="rounded-circle border border-2 shadow-sm"
+                        style="width:100px; height:100px; object-fit:cover;">
+                {% else %}
+                    <img src="{% static 'default-avatar.png' %}" 
+                        alt="Profile" 
+                        class="rounded-circle border border-2 shadow-sm"
+                        style="width:100px; height:100px; object-fit:cover;">
+                {% endif %}
+            </div>
+
+            <!-- Info -->
+            <div>
+                <h4 class="mb-1 fw-bold">{{ salesman.first_name }} {{ salesman.last_name }}</h4>
+                <p class="text-muted mb-1"><i class="bi bi-envelope me-2"></i>{{ salesman.email }}</p>
+                <p class="text-muted mb-1"><i class="bi bi-telephone me-2"></i>{{ salesman.phone_number }}</p>
+                <p class="text-muted mb-0"><i class="bi bi-calendar3 me-2"></i>
+                    Joined on {{ salesman.created_at|date:"d M Y" }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- KPI Summary -->
+    <div class="row text-center mb-4">
+        <div class="col-md-4">
+            <div class="card kpi-card p-4">
+                <i class="fa-solid fa-receipt fa-2x mb-2 text-primary"></i>
+                <h6>Total Orders</h6>
+                <h3>{{ order_summary.total_orders|default:0 }}</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card kpi-card p-4">
+                <i class="fa-solid fa-sack-dollar fa-2x mb-2 text-success"></i>
+                <h6>Total Sales</h6>
+                <h3>₹ {{ order_summary.total_sales|default:0|floatformat:2 }}</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card kpi-card p-4">
+                <i class="fa-solid fa-wallet fa-2x mb-2 text-warning"></i>
+                <h6>Total Collected</h6>
+                <h3>₹ {{ order_summary.total_paid|default:0|floatformat:2 }}</h3>
+                <small class="text-muted">Balance: ₹ {{ order_summary.total_balance|default:0|floatformat:2 }}</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customers -->
+    <div class="card p-4 mb-4">
+        <h5 class="section-title">Customers ({{ customer_count }})</h5>
+        <ul class="list-group list-group-flush">
+            {% for customer in customers %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><i class="fa-solid fa-user-tag me-2 text-secondary"></i>{{ customer.shop_name }} ({{ customer.full_name }})</span>
+                    <span class="badge badge-city">{{ customer.city }}</span>
+                </li>
+            {% empty %}
+                <li class="list-group-item">No customers assigned.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Product Sales Chart -->
+    <div class="card p-4">
+        <h5 class="section-title">Product-wise Sales</h5>
+        <canvas id="productChart" height="140"></canvas>
+    </div>
+
+</div>
+
+<script>
+    const productData = {
+        labels: JSON.parse('{{ product_labels|safe|escapejs }}'),
+        datasets: [
+            {
+                label: 'Sale Value (₹)',
+                data: JSON.parse('{{ product_values|safe|escapejs }}'),
+                backgroundColor: '#4e73df',
+                borderRadius: 10,
+                yAxisID: 'y',
+            },
+            {
+                label: 'Quantity',
+                data: JSON.parse('{{ product_qty|safe|escapejs }}'),
+                backgroundColor: '#1cc88a',
+                borderRadius: 10,
+                yAxisID: 'y1',
+            }
+        ]
+    };
+
+    new Chart(document.getElementById('productChart'), {
+        type: 'bar',
+        data: productData,
+        options: {
+            responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: { display: true },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            if (ctx.dataset.label === 'Total Spent (₹)') {
+                                return "₹ " + ctx.formattedValue;
+                            }
+                            return "Qty: " + ctx.formattedValue;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Total Spent (₹)'
+                    }
+                },
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    grid: { drawOnChartArea: false },
+                    title: {
+                        display: true,
+                        text: 'Quantity'
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+{% endblock content %}

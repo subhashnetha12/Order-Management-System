@@ -1,0 +1,586 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.bootstrap5.min.css">
+
+    <link rel="stylesheet" href="{% static 'css/alert.css' %}">
+    <script src="{% static 'js/alert.js' %}"></script>
+    
+    <style>
+        :root {
+            --primary-red: #601F2F;
+            --primary-orange: #ffb347;
+            --accent-yellow: #fc3;
+            --light-orange: #fff5e6;
+            --dark-red: #4a1824;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 60px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        .top-navbar {
+            background: linear-gradient(135deg, white 0%, var(--light-orange) 100%);
+            box-shadow: 0 2px 10px rgba(255, 106, 0, 0.35);
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            z-index: 1030;
+            height: 60px;
+            padding: 0;
+            transition: left 0.3s ease;
+        }
+        .top-navbar.collapsed { left: var(--sidebar-collapsed); }
+        .navbar-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            padding: 0 15px;
+            max-width: 100%;
+        }
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .sidebar-toggle {
+            background: var(--primary-orange);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin-left: 15px;
+            cursor: pointer;
+        }
+        .sidebar-toggle:hover { background: var(--primary-red); }
+        .navbar-right {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .navbar-profile-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .navbar-profile-fallback {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-orange), var(--primary-red));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .navbar-user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        .navbar-user-info .username {
+            font-weight: 600;
+        }
+        .navbar-user-info .role {
+            font-size: 0.9rem;
+            color: gray;
+        }
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, white 0%, var(--light-orange) 100%);
+            transform: translateX(0);
+            transition: width 0.3s ease;
+            z-index: 1040;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(255, 106, 0, 0.35);
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar.collapsed { width: var(--sidebar-collapsed); }
+        .sidebar.collapsed .nav-text,
+        .sidebar.collapsed .arrow { display: none; }
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            padding: 12px 0;
+        }
+        .sidebar.collapsed .submenu { display: none !important; }
+        .sidebar-logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 110px;
+            width: 100%;
+            
+            background-color: #601F2F;
+            margin-bottom: 10px;
+            transition: opacity 0.3s, height 0.3s, margin-bottom 0.3s;
+        }
+        .sidebar-logo-container .logo {
+            width: 200px;
+            height: auto;
+            background: transparent;
+            padding: 8px 10px;
+        }
+        .sidebar.collapsed .sidebar-logo-container {
+            opacity: 0;
+            pointer-events: none;
+            height: 0;
+            margin-bottom: 0;
+        }
+        .sidebar:not(.collapsed) .sidebar-logo-container {
+            opacity: 1;
+            height: 110px;
+            margin-bottom: 10px;
+        }
+        .sidebar-nav {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            flex: 1 1 auto;
+        }
+        .nav-item { border-bottom: 1px solid rgba(255, 179, 71, 0.2); }
+        .nav-link {
+            color: #333;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+        .nav-link:hover {
+            background: var(--primary-orange);
+            color: white;
+            transform: translateX(5px);
+        }
+        .nav-link.active {
+            background: var(--primary-red);
+            color: white;
+        }
+        .nav-icon {
+            width: 20px;
+            margin-right: 15px;
+            text-align: center;
+            font-size: 16px;
+        }
+        .nav-text {
+            flex-grow: 1;
+            font-size: 14px;
+        }
+        .arrow {
+            transition: transform 0.3s ease;
+            margin-left: auto;
+        }
+        .nav-link[aria-expanded=\"true\"] .arrow { transform: rotate(180deg); }
+        .submenu {
+            background: rgba(255, 179, 71, 0.1);
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .submenu.show { max-height: 300px; }
+        .submenu .nav-item { border-bottom: 1px solid rgba(255, 179, 71, 0.1); }
+        .submenu .nav-link {
+            padding: 12px 20px 12px 55px;
+            font-size: 13px;
+            transform: none;
+        }
+        .submenu .nav-link:hover {
+            background: rgba(255, 179, 71, 0.3);
+            color: #333;
+            transform: none;
+        }
+        .submenu .nav-link.active {
+            background: rgba(96, 31, 47, 0.3);
+            color: var(--primary-red);
+        }
+        .sidebar-footer {
+            border-top: 1px solid rgba(255,179,71,0.2);
+            padding: 10px 0 10px 0;
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .sidebar-footer .nav-link {
+            padding: 12px 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+        .sidebar-footer .nav-link:hover {
+            background: var(--primary-orange);
+            color: white;
+        }
+        /* Main Content */
+        .main-content {
+            margin-top: 60px;
+            padding: 5px;
+            transition: margin-left 0.3s ease;
+            min-height: calc(100vh - 60px);
+        }
+        @media (max-width: 767px) {
+            .top-navbar { left: 0; }
+            .top-navbar.collapsed { left: 0; }
+            .navbar-container { padding: 0 10px; }
+            .sidebar-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100vh;
+                background: rgba(0,0,0,0.5);
+                z-index: 1035;
+                display: none;
+            }
+            .sidebar-backdrop.show { display: block; }
+            .sidebar {
+                width: 280px;
+                top: 0;
+                height: 100vh;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { padding: 5px; margin-left: 0; }
+        }
+        @media (min-width: 768px) {
+            .sidebar { transform: translateX(0); top: 0; height: 100vh; }
+            .main-content { margin-left: var(--sidebar-width); }
+            .main-content.collapsed { margin-left: var(--sidebar-collapsed); }
+            .sidebar-backdrop { display: none !important; }
+        }
+        ::-webkit-scrollbar{
+            width: 0px;
+            height: 0px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    {% if messages %}
+        <div id="alert-container">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-white rounded">
+                    <div class="icon">
+                        {% if message.tags == "success" %}<i class="fa fa-check"></i>{% endif %}
+                        {% if message.tags == "error" %}<i class="fa fa-times-circle"></i>{% endif %}
+                    </div>
+                    <p><strong>{{ message.tags|capfirst }}!</strong> {{ message }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Top Navigation -->
+    <nav class="top-navbar">
+        <div class="navbar-container">
+            <div class="navbar-left">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <div class="navbar-right me-2">
+                <div class="navbar-user-info">
+                    <span class="username">{{current_user.username}}</span>
+                    <span class="role">{{current_user.role.name}}</span>
+                </div>
+                {% if current_user.profile_picture %}
+                    <img src="{{ current_user.profile_picture.url }}" 
+                        alt="{{ current_user.get_full_name }}" 
+                        class="navbar-profile-img">
+                {% else %}
+                     <div class="navbar-profile-fallback">
+                        {{ current_user.first_name|first|upper }}{{ current_user.last_name|first|upper }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    <!-- Sidebar Backdrop for Mobile -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-logo-container">
+            <img src="{% static 'images/logo.png' %}" alt="Company Logo"  class="logo">
+        </div>
+        <ul class="nav flex-column sidebar-nav">
+            <!-- Dashboard -->
+            {% if role_permission.dashboard_v %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'dashboard' %}">
+                    <i class="fas fa-tachometer-alt nav-icon"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+            </li>
+            {% endif %}
+            <!-- Accounts -->
+            {% if role_permission.roles_v or role_permission.users_v or role_permission.customer_v %}
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-users nav-icon"></i>
+                    <span class="nav-text">Accounts</span>
+                    <i class="fas fa-chevron-down arrow"></i>
+                </a>
+                <ul class="nav flex-column submenu" id="customersSubmenu">
+                    {% if role_permission.roles_v %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'role_table' %}">Roles & Permissions</a></li>
+                    {% endif %}
+                    {% if role_permission.users_v %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'user_table' %}">Users</a></li>
+                    {% endif %}
+                    {% if role_permission.customer_v %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'customer_table' %}">Customers</a></li>
+                    {% endif %}
+                </ul>
+            </li>
+            {% endif %}
+
+            {% if current_user.role.name == 'Admin' %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'salesman_visit_list' %}">
+                    <i class="fas fa-calendar-check nav-icon"></i>
+                    <span class="nav-text">Salesman Check-In /Out</span>
+                </a>
+            </li>
+            {% endif %}
+
+             <!-- Products -->
+            {% if role_permission.category_v or role_permission.all_products_v or role_permission.daily_production_v or role_permission.inventory_v %}
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-box nav-icon"></i>
+                    <span class="nav-text">Products</span>
+                    <i class="fas fa-chevron-down arrow"></i>
+                </a>
+                <ul class="nav flex-column submenu" id="productsSubmenu">
+                    {% if role_permission.category_v %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'category_table' %}">Categories</a></li>
+                    {% endif %}
+                    {% if role_permission.all_products_v %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'product_table' %}">All Products</a></li>
+                    {% endif %}
+                    {% if role_permission.daily_production_v %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'daily_production_table' %}">Daily Production</a></li>
+                    {% endif %}
+                    {% if role_permission.inventory_v %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'inventory_table' %}">Inventory</a></li>
+                    {% endif %}
+                </ul>
+            </li>
+            {% endif %}
+
+            {% if current_user.role.name == 'Salesman' %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'checkin_checkout_list' %}">
+                    <i class="fas fa-calendar-check nav-icon"></i>
+                    <span class="nav-text">Check-In / Check-Out</span>
+                </a>
+            </li>
+            {% endif %}
+
+            
+            <!-- Orders -->
+
+            {% if role_permission.orders_v %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'order_table' %}">
+                    <i class="fas fa-shopping-bag nav-icon"></i>
+                    <span class="nav-text">Orders</span>
+                </a>
+            </li>
+            {% endif %}
+            <!-- <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-shopping-bag nav-icon"></i>
+                    <span class="nav-text">Orders</span>
+                    <i class="fas fa-chevron-down arrow"></i>
+                </a>
+                <ul class="nav flex-column submenu" id="ordersSubmenu">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'order_table' %}">Sale Orders</a></li>
+                     <li class="nav-item"><a class="nav-link" href="#">Pending Orders</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Completed Orders</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Cancelled Orders</a></li> 
+                </ul>
+            </li> -->
+           
+            
+            <!-- Reports -->
+            {% if role_permission.s_reports_v or role_permission.c_reports_v %}
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-chart-bar nav-icon"></i>
+                    <span class="nav-text">Reports</span>
+                    <i class="fas fa-chevron-down arrow"></i>
+                </a>
+                <ul class="nav flex-column submenu" id="reportsSubmenu">
+                    {% if role_permission.s_reports_v %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'order_reports' %}">Sales Report</a></li>
+                    {% endif %}
+                    {% if role_permission.c_reports_v %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'customer_reports' %}">Customer Report</a></li>
+                    {% endif %}
+                    {% if role_permission.c_reports_v %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'salesman_reports' %}">Salesman Report</a></li>
+                    {% endif %}
+                </ul>
+            </li>
+            {% endif %}
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'profile' %}">
+                    <i class="fas fa-user-circle nav-icon"></i>
+                    <span class="nav-text">Profile</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'attendance' %}">
+                    <i class="fas fa-user-circle nav-icon"></i>
+                    <span class="nav-text">Attendance</span>
+                </a>
+            </li>
+
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'logout' %}" onclick="return confirm('Are you sure?');" >
+                    <i class="fas fa-sign-out-alt nav-icon"></i>
+                    <span class="nav-text">Logout</span>
+                </a>
+            </li>
+        </ul>
+        
+    </nav>
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        {% block content %}{% endblock %}
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+   <script>
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+    let isCollapsed = false;
+
+    // Toggle sidebar
+    sidebarToggle.addEventListener('click', function () {
+        if (window.innerWidth >= 768) {
+            isCollapsed = !isCollapsed;
+            sidebar.classList.toggle('collapsed', isCollapsed);
+            mainContent.classList.toggle('collapsed', isCollapsed);
+            document.querySelector('.top-navbar')?.classList.toggle('collapsed', isCollapsed);
+            if (isCollapsed) {
+                document.querySelectorAll('.submenu').forEach(sub => sub.classList.remove('show'));
+                document.querySelectorAll('.nav-link[data-submenu]').forEach(link => link.setAttribute('aria-expanded', 'false'));
+            }
+        } else {
+            sidebar.classList.toggle('show');
+            sidebarBackdrop.classList.toggle('show');
+        }
+    });
+
+    // Click backdrop to close sidebar
+    sidebarBackdrop.addEventListener('click', function () {
+        sidebar.classList.remove('show');
+        sidebarBackdrop.classList.remove('show');
+    });
+
+    // Toggle submenus
+    document.querySelectorAll('.nav-item > .nav-link + .submenu').forEach(submenu => {
+        const parentLink = submenu.previousElementSibling;
+        parentLink.setAttribute('data-submenu', submenu.id);
+        parentLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (sidebar.classList.contains('collapsed') && window.innerWidth >= 768) return;
+
+            const isExpanded = this.getAttribute('aria-expanded') === 'true';
+            document.querySelectorAll('.submenu').forEach(otherSubmenu => {
+                if (otherSubmenu !== submenu) otherSubmenu.classList.remove('show');
+            });
+            document.querySelectorAll('.nav-link[data-submenu]').forEach(link => {
+                if (link !== this) link.setAttribute('aria-expanded', 'false');
+            });
+
+            if (isExpanded) {
+                submenu.classList.remove('show');
+                this.setAttribute('aria-expanded', 'false');
+            } else {
+                submenu.classList.add('show');
+                this.setAttribute('aria-expanded', 'true');
+            }
+        });
+    });
+
+    // Set active links
+    function setActiveLink(clickedLink) {
+        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+        clickedLink.classList.add('active');
+
+        // Open parent submenu if exists
+        const submenu = clickedLink.closest('.submenu');
+        if (submenu) {
+            submenu.classList.add('show');
+            const parentLink = submenu.previousElementSibling;
+            parentLink.classList.add('active');
+            parentLink.setAttribute('aria-expanded', 'true');
+        }
+
+        // Close sidebar on small screens
+        if (window.innerWidth < 768) {
+            sidebar.classList.remove('show');
+            sidebarBackdrop.classList.remove('show');
+        }
+    }
+
+    // Click event for top-level and submenu links
+    document.querySelectorAll('.nav-link[data-page]').forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            setActiveLink(this);
+        });
+    });
+
+    // Resize behavior
+    window.addEventListener('resize', function () {
+        if (window.innerWidth >= 768) {
+            sidebar.classList.remove('show');
+            sidebarBackdrop.classList.remove('show');
+        } else {
+            if (isCollapsed) {
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('collapsed');
+                document.querySelector('.top-navbar')?.classList.remove('collapsed');
+                isCollapsed = false;
+            }
+        }
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+#alert-container {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1050;
+    width: 90%;
+    max-width: 500px;
+    transition: top 0.4s ease-in-out, opacity 0.4s ease-in-out;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+@media (min-width: 374px) {
+    #alert-container {
+        width: 70%;
+        max-width: 600px;
+    }
+}
+
+@media (min-width: 768px) {
+    #alert-container {
+        width: fit-content;
+    }
+    .alert {
+        min-height: 30px;
+    }
+}
+
+@media (min-width: 1024px) {
+    #alert-container {
+        width: fit-content;
+        left: 55%;
+    }
+}
+
+.alert {
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+    position: relative;
+    background: white;
+    font-size: 12px;
+    min-height: 30px;
+}
+
+.alert.show {
+    opacity: 1;
+    transform: translateY(8px);
+}
+
+.alert.hide {
+    opacity: 1;
+    transform: translateY(8px);
+}
+
+.alert-white {
+    background: linear-gradient(to bottom, #fff, #f7f7f7);
+    border: 1px solid #ccc;
+    color: #333;
+    padding-left: 10px;
+}
+
+.alert-white .icon {
+    width: 28px;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding-top: 10px;
+    border-radius: 4px 0 0 4px;
+    background: #ccc;
+    border: 1px solid #bbb;
+    text-align: center;
+}
+
+.alert-white .icon i {
+    font-size: 13px;
+    color: #fff;
+    position: absolute;
+    top: 50%;
+    left: 7px;
+    transform: translateY(-50%);
+}
+
+.alert p {
+    margin: 0;
+    margin-left: 28px;
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+/* Alert Types */
+.alert-success { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+.alert-success .icon { background: #4caf50; }
+
+.alert-info { background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+.alert-info .icon { background: #2196f3; }
+
+.alert-warning { background-color: #fff3cd; border-color: #ffeeba; color: #856404; }
+.alert-warning .icon { background: #ff9800; }
+
+.alert-error { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+.alert-error .icon { background: #f44336; }

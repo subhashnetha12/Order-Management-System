@@ -1,0 +1,343 @@
+{% extends 'company_admin/base.html' %}
+{% load static %}
+
+{% block title %}User Details | devRasen{% endblock %}
+{% block content %}
+
+<style>
+:root {
+    --primary-red: #601F2F;
+    --primary-orange: #ffb347;
+    --accent-yellow: #fc3;
+    --light-orange: #fff5e6;
+    --dark-red: #4a1824;
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --transition: all 0.3s ease;
+}
+
+.user-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255,179,71,0.3);
+}
+
+.user-title {
+    color: transparent;
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #601F2F 10%, #ffb347 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+
+.close-btn {
+    background: linear-gradient(90deg, var(--primary-orange), var(--primary-red));
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.close-btn:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background: linear-gradient(90deg, #601F2F 0%, #ffb347 100%);
+    transform: translateY(-1px);
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    transition: var(--transition);
+    height: 100%;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+
+.card-header {
+    background: linear-gradient(90deg, rgba(255,179,71,0.1), rgba(96,31,47,0.1));
+    color: var(--primary-red);
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255,179,71,0.3);
+    border-radius: 12px 12px 0 0 !important;
+    padding: 15px 20px;
+    font-size: 18px;
+}
+
+.card-header i {
+    color: var(--primary-orange);
+}
+
+.card-body {
+    padding: 25px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.active {
+    background-color: rgba(40, 167, 69, 0.15);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.inactive {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.user-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden; /* ensures image stays inside circle */
+    background: linear-gradient(135deg, var(--primary-orange), var(--primary-red));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: bold;
+    margin-right: 25px;
+    box-shadow: 0 4px 12px rgba(96,31,47,0.2);
+}
+
+.user-avatar img.profile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;   /* crop nicely */
+    border-radius: 50%;  /* ensure circle */
+}
+
+.user-profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.user-name {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary-red);
+    margin-bottom: 8px;
+}
+
+.user-role {
+    background: var(--light-orange);
+    color: var(--primary-red);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--primary-orange);
+    display: inline-block;
+}
+
+.info-item {
+    margin-bottom: 12px;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed rgba(96,31,47,0.1);
+    display: flex;
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: var(--primary-red);
+    margin-bottom: 5px;
+    font-size: 14px;
+    opacity: 0.8;
+    margin-right: 8px; 
+    white-space: nowrap; 
+}
+
+.info-value {
+    font-size: 16px;
+    color: #333;
+}
+
+.btn-edit {
+    background: linear-gradient(90deg, var(--primary-orange), var(--primary-red));
+    border: none;
+    padding: 12px 25px;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-edit:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background: linear-gradient(90deg, #601F2F 0%, #ffb347 100%);
+    transform: translateY(-1px);
+}
+
+
+@media (max-width: 768px) {
+    .user-profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .user-avatar {
+        margin-right: 0;
+        margin-bottom: 20px;
+    }
+    
+    .card-header {
+        font-size: 16px;
+        padding: 12px 15px;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+}
+</style>
+
+<div class="container-fluid mt-4 mb-5">
+    <div class="user-header">
+        <h1 class="user-title">User Details</h1>
+        <button onclick="window.history.back()" class="close-btn">
+            <i class="fas fa-arrow-left"></i> Back
+        </button>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-lg-4 col-md-6 col-sm-12 d-flex">
+            <div class="card mb-4 flex-grow-1">
+                <div class="card-header"><i class="fas fa-user-circle me-2"></i>Profile Overview</div>
+                <div class="card-body">
+                    <div class="user-profile-header">
+                        <div class="user-avatar">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" 
+                                    alt="{{ user.get_full_name }}" 
+                                    class="profile-img">
+                            {% else %}
+                                <span>{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="user-name">{{ user.first_name }} {{ user.last_name }}</div>
+                            <div class="user-role">{{ user.role }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item d-flex align-items-center">
+                        <div class="info-label me-2">Member Since:</div>
+                        <div class="info-value">{{ user.created_at|date:"M d, Y" }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Last Updated</div>
+                        <div class="info-value">{{ user.updated_at|date:"M d, Y" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 col-sm-12 d-flex">
+            <div class="card mb-4 flex-grow-1">
+                <div class="card-header"><i class="fas fa-id-card me-2"></i>Personal Information</div>
+                <div class="card-body">
+                    <div class="info-item">
+                        <div class="info-label">Username</div>
+                        <div class="info-value">{{ user.username }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Full Name</div>
+                        <div class="info-value">{{ user.first_name }} {{ user.last_name }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Email Address</div>
+                        <div class="info-value">{{ user.email }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Phone Number</div>
+                        <div class="info-value">{{ user.phone_number|default:"Not provided" }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Account Status</div>
+                        <div class="info-value">
+                            <span class="status-badge {% if user.is_active %}active{% else %}inactive{% endif %}">
+                                {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 col-sm-12 d-flex">
+            <div class="card mb-4 flex-grow-1">
+                <div class="card-header"><i class="fas fa-map-marker-alt me-2"></i> Address Information</div>
+                <div class="card-body">
+                    <div class="info-item">
+                        <div class="info-label">Street Address</div>
+                        <div class="info-value">{{ user.address|default:"Not provided" }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">City</div>
+                        <div class="info-value">{{ user.city|default:"Not provided" }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">State/Province</div>
+                        <div class="info-value">{{ user.state|default:"Not provided" }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Postal Code</div>
+                        <div class="info-value">{{ user.pincode|default:"Not provided" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-end mt-4">
+        <a href="{% url 'edit_user' user.id %}" class="btn btn-edit text-white">
+            <i class="fas fa-edit"></i> Edit Profile
+        </a>
+    </div>
+</div>
+
+{% endblock content %}

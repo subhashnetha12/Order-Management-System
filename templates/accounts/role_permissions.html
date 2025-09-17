@@ -1,0 +1,388 @@
+{% extends 'company_admin/base.html' %}
+{% block content %}
+<style>
+    .table-container {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    overflow-x: auto;
+    display: flex;
+    flex-direction: column;
+    height: 95vh;
+    margin-bottom: 15px;
+}
+
+.table-wrapper {
+    flex: 1;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-wrapper::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.table-wrapper {
+    scrollbar-width: none;
+}
+
+.table-wrapper {
+    -ms-overflow-style: none;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th,
+.table tr {
+    vertical-align: middle;
+}
+
+.table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 15px;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+    background-color: #eaeaea;
+    color: rgb(52, 52, 52);
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+}
+
+.table tbody tr:hover td {
+    cursor: pointer;
+    background-color: #f3f3f3;
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+
+.table th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+}
+
+.table td {
+    padding: 8px;
+    vertical-align: middle;
+}
+
+.table .dropdown-menu {
+    min-width: 150px;
+}
+
+.custom-label {
+    font-weight: 500;
+}
+
+.scrollable-tbody {
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.custom-label {
+    background-color: rgb(66, 66, 66);
+    text-align: center;
+    font-weight: bold;
+    padding: 5px 0px;
+}
+
+.secrow {
+    background-color: #f9f9f9;
+    text-align: center;
+    font-weight: bold;
+    padding: 0px 5px;
+}
+
+.table th {
+    text-align: center;
+    vertical-align: middle;
+}
+
+
+tbody {
+    max-height: 430px;
+    overflow-y: auto;
+}
+
+
+.checkbox-cell {
+    padding-left: 10px;
+    text-align: center;
+}
+
+h4 {
+    vertical-align: center;
+    padding-left: 10px;
+    font-size: small;
+    font-weight: 700;
+}
+
+h5 {
+    vertical-align: center;
+    padding-left: 30px;
+    font-size: small;
+    font-weight: 500;
+}
+
+h6 {
+    vertical-align: center;
+    padding-left: 60px;
+    font-size: small;
+    font-weight: 400;
+}
+
+.main-row td {
+    background-color: #e4e4e4;
+}
+
+.sub-row td {
+    background-color: #f8f5f5;
+}
+
+.super-sub-row td {
+    background-color: #fafafa;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@media (max-width: 992px) {
+    .content {
+        height: 89vh !important;
+    }
+}
+
+@media (width: 768px) {
+    .content {
+        height: 85vh !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .content {
+        height: 75vh !important;
+    }
+}
+
+.align-middle {
+    color: white;
+}
+</style>
+
+
+    <div class="container table-container fade-in mt-2">
+        <section class=" d-block custom-label mb-2">
+            <label class="align-middle">
+                All Rights Select/Diselect all
+                <input type="checkbox" id="select-all" class="ms-2 align-middle">
+            </label>
+        </section>
+        <form method="post">
+            {% csrf_token %}
+            <div class="secrow d-flex justify-content-between align-items-center">
+                <label>Role = {{role}}</label>
+                <button type="submit" class="btn btn-primary btn-sm mb-2">Save Changes</button>
+            </div>
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Menu Name</th>
+                            <th>View</th>
+                            <th>Add</th>
+                            <th>Edit</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody id="form-data-table">
+                        <tr class="main-row" data-group="Dashboard">
+                            <td>
+                                <h4>Dashboard</h4>
+                            </td>
+                            <td class="checkbox-cell"><input type="checkbox" name="dashboard_v" {% if permissions and permissions.dashboard_v %} checked {% endif %}></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+
+                        <tr class="main-row" data-group="accounts">
+                            <td><h4>Accounts</h4></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="accounts_v" {% if permissions and permissions.accounts_v %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="accounts_a" {% if permissions and permissions.accounts_a %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="accounts_e" {% if permissions and permissions.accounts_e %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="accounts_d" {% if permissions and permissions.accounts_d %}checked{% endif %}></td>
+                        </tr>
+                        <tr class="sub-row accounts">
+                            <td>
+                                <h5>Roles & Permissions</h5>
+                            </td>
+                            <td class="checkbox-cell"><input type="checkbox" name="roles_v" {% if permissions and permissions.roles_v %} checked {% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="roles_a" {% if permissions and permissions.roles_a %} checked {% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="roles_e" {% if permissions and permissions.roles_e %} checked {% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="roles_d" {% if permissions and permissions.roles_d %} checked {% endif %}></td>
+                        </tr>
+                        <tr class="sub-row accounts">
+                            <td>
+                                <h5>User</h5>
+                            </td>
+                            <td class="checkbox-cell"><input type="checkbox" name="users_v" {% if permissions and permissions.users_v %} checked {% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="users_a" {% if permissions and permissions.users_a %} checked {% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="users_e" {% if permissions and permissions.users_e %} checked {% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="users_d" {% if permissions and permissions.users_d %} checked {% endif %}></td>
+                        </tr>
+                        <tr class="sub-row accounts">
+                            <td>
+                                <h5>Customer</h5>
+                            </td>
+                            <td class="checkbox-cell"><input type="checkbox" name="customer_v" {% if permissions and permissions.customer_v %} checked {% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="customer_a" {% if permissions and permissions.customer_a %} checked {% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="customer_e" {% if permissions and permissions.customer_e %} checked {% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="customer_d" {% if permissions and permissions.customer_d %} checked {% endif %}></td>
+                        </tr>
+
+                        <tr class="main-row" data-group="products">
+                            <td><h4>Products</h4></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="products_v" {% if permissions and permissions.products_v %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="products_a" {% if permissions and permissions.products_a %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="products_e" {% if permissions and permissions.products_e %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="products_d" {% if permissions and permissions.products_d %}checked{% endif %}></td>
+                        </tr>
+
+                        <tr class="sub-row products">
+                            <td><h5>Categories</h5></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="category_v" {% if permissions and permissions.category_v %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="category_a" {% if permissions and permissions.category_a %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="category_e" {% if permissions and permissions.category_e %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="category_d" {% if permissions and permissions.category_d %}checked{% endif %}></td>
+                        </tr>
+
+                        <tr class="sub-row products">
+                            <td><h5>All Products</h5></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="all_products_v" {% if permissions and permissions.all_products_v %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="all_products_a" {% if permissions and permissions.all_products_a %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="all_products_e" {% if permissions and permissions.all_products_e %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="all_products_d" {% if permissions and permissions.all_products_d %}checked{% endif %}></td>
+                        </tr>
+
+                        <tr class="sub-row products">
+                            <td><h5>Daily Production</h5></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="daily_production_v" {% if permissions and permissions.daily_production_v %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="daily_production_a" {% if permissions and permissions.daily_production_a %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="daily_production_e" {% if permissions and permissions.daily_production_e %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="daily_production_d" {% if permissions and permissions.daily_production_d %}checked{% endif %}></td>
+                        </tr>
+
+                        <tr class="sub-row products">
+                            <td><h5>Inventory</h5></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="inventory_v" {% if permissions and permissions.inventory_v %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="inventory_a" {% if permissions and permissions.inventory_a %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="inventory_e" {% if permissions and permissions.inventory_e %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="inventory_d" {% if permissions and permissions.inventory_d %}checked{% endif %}></td>
+                        </tr>
+
+                        <tr class="main-row" data-group="orders">
+                            <td><h4>Orders</h4></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="orders_v" {% if permissions and permissions.orders_v %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="orders_a" {% if permissions and permissions.orders_a %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="orders_e" {% if permissions and permissions.orders_e %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="orders_d" {% if permissions and permissions.orders_d %}checked{% endif %}></td>
+                        </tr>
+                        <tr class="main-row" data-group="reports">
+                            <td><h4>Reports</h4></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="reports_v" {% if permissions and permissions.reports_v %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="reports_a" {% if permissions and permissions.reports_a %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="reports_e" {% if permissions and permissions.reports_e %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="reports_d" {% if permissions and permissions.reports_d %}checked{% endif %}></td>
+                        </tr>
+
+                        <tr class="sub-row reports">
+                            <td><h5>Sales Report</h5></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="s_reports_v" {% if permissions and permissions.s_reports_v %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="s_reports_a" {% if permissions and permissions.s_reports_a %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="s_reports_e" {% if permissions and permissions.s_reports_e %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="s_reports_d" {% if permissions and permissions.s_reports_d %}checked{% endif %}></td>
+                        </tr>
+                        <tr class="sub-row reports">
+                            <td><h5>Customer Report</h5></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="c_reports_v" {% if permissions and permissions.c_reports_v %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="c_reports_a" {% if permissions and permissions.c_reports_a %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="c_reports_e" {% if permissions and permissions.c_reports_e %}checked{% endif %}></td>
+                            <td class="checkbox-cell"><input type="checkbox" name="c_reports_d" {% if permissions and permissions.c_reports_d %}checked{% endif %}></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        document.getElementById('select-all').addEventListener('change', function () {
+    var checkboxes = document.querySelectorAll('#form-data-table input[type="checkbox"]');
+    for (var checkbox of checkboxes) {
+        checkbox.checked = this.checked;
+    }
+});
+
+document.querySelectorAll('.main-row input[type="checkbox"]').forEach(function (mainCheckbox) {
+    mainCheckbox.addEventListener('change', function () {
+        const group = mainCheckbox.closest('.main-row').getAttribute('data-group');
+        const action = mainCheckbox.name.split('_')[1];  // Extract 'view', 'add', 'edit', 'delete'
+        const isChecked = mainCheckbox.checked;
+
+        // Only update the "View" checkboxes for the corresponding subcategory group
+        if (action === 'v') {
+            const subRows = document.querySelectorAll(`.sub-row.${group} input[name*="_v"]`);
+            subRows.forEach(function (subRowCheckbox) {
+                subRowCheckbox.checked = isChecked;
+            });
+        }
+        
+        // Similarly for 'Add', 'Edit', and 'Delete'
+        else if (action === 'a' || action === 'e' || action === 'd' || action === 'u') {
+            const subRows = document.querySelectorAll(`.sub-row.${group} input[name*="_${action}"]`);
+            subRows.forEach(function (subRowCheckbox) {
+                subRowCheckbox.checked = isChecked;
+            });
+        }
+    });
+});
+
+document.querySelectorAll('.sub-row input[type="checkbox"]').forEach(function (subCheckbox) {
+    subCheckbox.addEventListener('change', function () {
+        const group = subCheckbox.closest('.sub-row').getAttribute('class').split(' ')[1]; // Get group name
+        const action = subCheckbox.name.split('_')[1]; // Extract "view", "add", "edit", or "delete"
+
+        // Check if all "View" checkboxes for the main category are checked or not
+        if (action === 'v') {
+            const mainCheckbox = document.querySelector(`.main-row[data-group="${group}"] input[name*="v"]`);
+            const subCheckboxes = document.querySelectorAll(`.sub-row.${group} input[name*="_v"]`);
+            mainCheckbox.checked = Array.from(subCheckboxes).every(function (checkbox) {
+                return checkbox.checked;
+            });
+        }
+
+        // Handle Add, Edit, and Delete similarly
+        else if (action === 'a' || action === 'e' || action === 'd' || action === 'u') {
+            const mainCheckbox = document.querySelector(`.main-row[data-group="${group}"] input[name*="_${action}"]`);
+            const subCheckboxes = document.querySelectorAll(`.sub-row.${group} input[name*="_${action}"]`);
+            mainCheckbox.checked = Array.from(subCheckboxes).every(function (checkbox) {
+                return checkbox.checked;
+            });
+        }
+    });
+});
+    </script>
+{% endblock %}

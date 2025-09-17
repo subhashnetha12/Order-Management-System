@@ -1,0 +1,312 @@
+{% extends 'company_admin/base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+<!-- Removed Bootstrap CDN -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-red: #601F2F;
+            --primary-orange: #ffb347;
+            --accent-yellow: #fc3;
+            --light-orange: #fff5e6;
+            --dark-red: #4a1824;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 60px;
+        }
+
+        body {
+            background-color: var(--light-orange);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .header {
+            min-width: 30%;
+            color: transparent;
+            font-size: 22px !important;
+            font-weight: 700 !important;
+            border-radius: 12px;
+            padding: 8px 24px !important;
+            letter-spacing: 1px;
+            border: none;
+            background-image: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary-orange), var(--primary-red));
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            border-radius: 1.2rem;
+            padding: 8px 16px;
+            box-shadow: 0 2px 8px rgba(255,179,71,0.10);
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 4px 16px rgba(255,179,71,0.18);
+        }
+
+        .custom-card {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 8px 32px rgba(96,31,47,0.13), 0 1.5px 8px rgba(255,179,71,0.08);
+            padding: 18px 10px;
+            background: #fff;
+            min-height: 80vh;
+            margin-top: 10px;
+            animation: fadeInUp 0.7s ease-out both;
+        }
+
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        table.dataTable {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1.5px 8px rgba(255,179,71,0.04);
+        }
+
+        table.dataTable thead th {
+            background-color: rgb(255, 195, 106);
+            padding: 12px 10px;
+            border-bottom: 2px solid var(--primary-red);
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        table.dataTable td {
+            padding: 10px;
+            font-size: 0.98rem;
+            color: var(--primary-red);
+            vertical-align: middle;
+            border-bottom: 1px solid #f3e6d7;
+            background: #fff;
+        }
+
+        table.dataTable tr {
+            transition: background 0.2s;
+        }
+
+        table.dataTable tbody tr:hover {
+            background: var(--accent-yellow);
+            color: var(--primary-red);
+        }
+
+        .btn-icon {
+    background: none;
+    border: none;
+    padding: 0 2px;
+    margin: 0 2px;
+    cursor: pointer;
+    transition: transform 0.15s;
+    display: inline-block;
+}
+
+        .btn-icon:hover {
+            transform: scale(1.15);
+        }
+
+        .dataTables_wrapper .top-controls, .dataTables_wrapper .bottom-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .dataTables_wrapper .dataTables_length select,
+        .dataTables_wrapper .dataTables_filter input {
+            border-radius: 0.7rem;
+            border: 1.5px solid var(--primary-orange);
+            background: #fff;
+            color: var(--primary-red);
+            font-size: 1rem;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: var(--primary-red);
+            box-shadow: 0 0 0 2px #ffb34733;
+        }
+
+        .dataTables_wrapper .dataTables_length label,
+        .dataTables_wrapper .dataTables_filter label {
+            color: var(--primary-red);
+            font-weight: 500;
+        }
+
+        .dataTables_wrapper .dataTables_info {
+            color: var(--primary-red);
+            font-size: 0.97rem;
+        }
+
+        .dataTables_wrapper .dataTables_paginate {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            padding: 6px 12px;
+            margin: 0 3px;
+            border-radius: 6px;
+            border: 1px solid var(--primary-orange);
+            background: var(--light-orange);
+            color: var(--primary-red);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: var(--primary-orange);
+            color: #fff !important;
+            border: 1px solid var(--primary-red);
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: var(--primary-red);
+            color: #fff !important;
+            border: 1px solid var(--primary-red);
+        }
+
+        @media (max-width: 991.98px) {
+            .custom-card { padding: 10px 2px; }
+        }
+        @media (max-width: 767px) {
+            .header { font-size: 18px !important; padding: 6px 10px !important; }
+            .custom-card { padding: 6px 1px; }
+            table.dataTable td { font-size: 12px; }
+            .dataTables_wrapper { overflow-x: auto; }
+        }
+    </style>
+
+    <div class="container mt-1">
+        <div class="mb-0 p-0">
+            <div class="d-flex justify-content-between flex-wrap m-1">
+                <h5 class="header">Sales Orders</h5>
+                <div>
+                    <button class="btn btn-success m-2" onclick="exportToExcel()">
+                        <i class="fas fa-file-excel"></i> Export to Excel
+                    </button>
+                    <a href="{% url 'add_order' %}" class="btn btn-primary m-2">+ Add Sale Order</a>
+                </div>
+            </div>
+        </div>
+        <div class="custom-card">
+            <table id="salestable" class="table align-middle" style="width:100%">
+                <thead class="table-header">
+                    <tr>
+                        <th>S.No</th>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Total Amount (₹)</th>
+                        <th>Amount Paid (₹)</th>
+                        <th>Payment Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for order in orders %}
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ order.order_date|date:"d-m-Y" }}</td>
+                    <td>{{ order.customer }}</td>
+                    <td>₹{{ order.total_amount }}</td>
+                    <td>₹{{ order.total_paid }}</td>
+                    <td class="text-center">
+                        {% if order.balance_due > 0 %}
+                            <div class="payment-status" id="paymentStatus{{ forloop.counter }}">
+                                <a href="{% url 'pay_remaining_amount' order.id %}" class="badge text-success border border-success text-decoration-none" title="Pay Now">Pay Remaing </a>
+                            </div>
+                        {% else %}
+                            <span class="badge bg-success">Paid</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        
+                        <a href="{% url 'view_receipt' order.id %}" class="btn-icon" title="View Receipt">
+                            <i class="fas fa-eye fa-lg text-primary px-2"></i>
+                        </a>
+                        <a href="#" class="btn-icon text-decoration-none" title="Edit">
+                            <i class="fas fa-edit fa-lg text-warning px-2"></i>
+                        </a>
+                        <a href="#" onclick="return confirm('Are you sure?');" class="btn-icon" title="Delete">
+                            <i class="fas fa-trash fa-lg text-danger px-2"></i>
+                        </a>
+                    </td>
+                </tr>
+               
+                <!-- <tr>
+                    <td colspan="7" class="text-muted">No sales data available.</td>
+                </tr> -->
+                {% endfor %}
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.4.1/js/responsive.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var table = $("#salestable").DataTable({
+                responsive: true,
+                dom: "<'top-controls'lf>rt<'bottom-controls'ip>",
+                language: {
+                    'paginate': {
+                        'previous': '<span class="fa fa-chevron-left"></span>',
+                        'next': '<span class="fa fa-chevron-right"></span>'
+                    },
+                    "lengthMenu": 'Display <select class="form-control input-sm">'+
+                        '<option value="10">10</option>'+
+                        '<option value="20">20</option>'+
+                        '<option value="30">30</option>'+
+                        '<option value="40">40</option>'+
+                        '<option value="50">50</option>'+
+                        '<option value="-1">All</option>'+
+                        '</select> results'
+                }
+            });
+
+            $(window).resize(function() {
+                table.columns.adjust().responsive.recalc();
+            });
+        });
+
+        function exportToExcel() {
+            // Get table data
+            const table = document.getElementById('salestable');
+            const ws = XLSX.utils.table_to_sheet(table);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Sales');
+            
+            // Generate filename with current date
+            const date = new Date().toISOString().split('T')[0];
+            const filename = `sales_report_${date}.xlsx`;
+            
+            // Save file
+            XLSX.writeFile(wb, filename);
+        }
+    </script>
+{% endblock content %}

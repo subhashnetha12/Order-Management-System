@@ -1,0 +1,719 @@
+
+
+{% extends 'company_admin/base.html' %}
+{% block content %}
+
+<style>
+    body {
+        background: linear-gradient(120deg, #fff5e6 60%, #fef2e6 100%);
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .main-container {
+        /* display: flex; */
+        gap: 20px;
+        max-width: 1400px;
+        margin: 10 auto;
+        padding: 5px;
+    }
+
+    .card {
+        border-radius: 1.2rem;
+        box-shadow: 0 6px 32px rgba(96, 31, 47, 0.10);
+        border: none;
+        background: #fff;
+    }
+
+    .sale-items-card {
+        flex: 3;
+    }
+
+    .sale-details-card {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .card-header {
+        background-color: rgb(255, 195, 106);
+        color: rgb(0, 0, 0);
+        border-radius: 1.2rem 1.2rem 0 0 !important;
+        padding: 15px 20px;
+        font-weight: 600;
+    }
+
+    .go-back-btn {
+        background-color: rgb(255, 195, 106);
+        color: rgb(0, 0, 0);
+        border: none;
+        border-radius: 0.5rem;
+        padding: 8px 16px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .go-back-btn:hover {
+        background: linear-gradient(90deg, #495057, #6c757d);
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .form-label {
+        font-weight: bold !important;
+        color: #601F2F;
+    }
+
+    .gradient-title {
+        background: linear-gradient(90deg, #601F2F 10%, #ffb347 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent;
+        font-weight: 700;
+        font-family: 'Poppins', sans-serif;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control,
+    .form-select {
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        border: 1.5px solid #e2e8f0;
+        background: #fdfdfd;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #ffb347;
+        box-shadow: 0 0 0 2px #ffb34733;
+    }
+
+    .btn-danger {
+        background: linear-gradient(90deg, #dc3545, #c82333);
+        border: none;
+        border-radius: 0.5rem;
+    }
+
+    .btn-danger:hover {
+        background: linear-gradient(90deg, #c82333, #dc3545);
+    }
+
+    .create-sale-btn {
+        background-color: rgb(255, 195, 106);
+        color: rgb(0, 0, 0);
+        border: none;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        padding: 12px;
+        width: 100%;
+    }
+
+    .create-sale-btn:hover {
+        background-color: rgb(255, 195, 106);
+        transform: translateY(-1px);
+    }
+
+    .table {
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .table thead th {
+        background-color: rgb(255, 195, 106);
+        color: rgb(0, 0, 0);
+        border: none;
+        font-weight: 600;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .summary-item:last-child {
+        border-bottom: none;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
+    .tax-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .tax-controls button {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: none;
+        font-weight: bold;
+    }
+
+    @media (max-width: 991.98px) {
+        .main-container {
+            flex-direction: column;
+        }
+    }
+</style>
+
+
+
+<div class="container-fluid">
+
+
+    <div class="main-container">
+        <!-- Sale Items Section -->
+        <div class="card sale-items-card">
+            <div class="card-header">
+                <h5 class="mb-0">Sale Items</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="itemSelect" class="form-label">Select Item</label>
+                        <select class="form-select" id="itemSelect">
+                            <option value="">Search an item</option>
+                            {% for product in products %}
+                                <option value="{{ product.id }}" data-name="{{ product.name }}">
+                                    {{ product.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-3" id="weightSection" style="display:none;">
+                        <label for="weightSelect" class="form-label">Select Weight</label>
+                        <select class="form-select" id="weightSelect">
+                            <option value="">Choose weight</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-danger w-100" id="deleteAllItems">
+                            <i class="fas fa-trash"></i> Delete All Items
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="itemsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>SubTotal</th>
+                                <th>Discount (%)</th>
+                                <th>Discount Amt</th>
+                                <th>Taxable Amt</th>
+                                <th>Tax (%)</th>
+                                <th>Tax Amt</th>
+                                <th>Total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody"></tbody>
+                    </table>
+                    <div id="noDataMessage" class="text-center text-muted py-4">
+                        No data available in table
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <form method="post" id="saleOrderForm">
+        <!-- Sale Details Section -->
+        <div class="row mt-3">
+                {% csrf_token %}
+                <!-- 🔹 Left Card: Customer Details -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Customer Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="customerSelect" class="form-label">Customer</label>
+                                <select class="form-select" name="customer" id="customerSelect" required>
+                                    <option value="">Select the customer</option>
+                                    {% for customer in customers %}
+                                    <option value="{{ customer.id }}">{{ customer.full_name }}-({{ customer.shop_name }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-check mb-2">
+                                <input type="checkbox" class="form-check-input" id="is_free_sample" name="is_free_sample" value="True">
+                                <label class="form-check-label" for="is_free_sample">Free Sample</label>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="orderType" class="form-label">Order Type</label>
+                                <select class="form-select" id="orderType" name="order_type" required>
+                                    <option value="">Select order type</option>
+                                    <option value="telephone">Telephone</option>
+                                    <option value="location"> Location</option>
+                                    <option value="email"> Email</option>
+                                </select>
+                            </div>
+
+
+                            <div class="mb-2 d-flex justify-content-between">
+                                <label class="form-label fw-bold me-2">Shop Address:</label>
+                                <p id="shopAddress" class="form-control-plaintext mb-0">—</p>
+                            </div>
+
+                            <div class="mb-2 d-flex justify-content-between">
+                                <label class="form-label fw-bold me-2">City:</label>
+                                <p id="shopCity" class="form-control-plaintext mb-0">—</p>
+                            </div>
+
+                            <div class="mb-2 d-flex justify-content-between">
+                                <label class="form-label fw-bold me-2">State:</label>
+                                <p id="shopState" class="form-control-plaintext mb-0">—</p>
+                            </div>
+
+                            <div class="mb-2 d-flex justify-content-between">
+                                <label class="form-label fw-bold me-2">Pincode:</label>
+                                <p id="shopPincode" class="form-control-plaintext mb-0">—</p>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🔹 Right Card: Order Summary -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Order Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="summary-item d-flex justify-content-between">
+                                <span>Subtotal</span>
+                                <span id="subtotal">₹0.00</span>
+                            </div>
+
+                            <div class="summary-item d-flex justify-content-between">
+                                <span>Discount (%)</span>
+                                <span id="flat_discount">0</span>
+                                <input type="hidden" id="discountPercentage" value="0">
+                            </div>
+
+                            <div class="summary-item d-flex justify-content-between">
+                                <span>Discount Amount</span>
+                                <span id="discount_amount">₹0.00</span>
+                            </div>
+
+                            <div class="summary-item d-flex justify-content-between">
+                                <span>Taxable Amount</span>
+                                <span id="beforeTax">₹0.00</span>
+                            </div>
+
+                            <div class="summary-item d-flex justify-content-between">
+                                <span>Tax Amount</span>
+                                <span id="taxAmount">₹0.00</span>
+                            </div>
+
+                            <div class="summary-item d-flex justify-content-between fw-bold">
+                                <span>Payable Amount</span>
+                                <span id="afterTax">₹0.00</span>
+                            </div>
+
+                            <div class="summary-item d-flex justify-content-between fw-bold">
+                                <span>Grand Total</span>
+                                <span id="grandTotal">₹0.00</span>
+                            </div>
+
+                            <!-- Hidden Inputs -->
+                            <input type="hidden" name="subtotal" id="subtotalInput">
+                            <input type="hidden" name="discount_amount" id="discountAmountInput">
+                            <input type="hidden" name="taxable_amount" id="beforeTaxInput">
+                            <input type="hidden" name="tax_amount" id="taxAmountInput">
+                            <input type="hidden" name="after_tax_amount" id="afterTaxInput">
+                            <input type="hidden" name="grand_total" id="grandTotalInput">
+
+                            <div class="mb-3 mt-3">
+                                <label class="form-label">Amount Paid</label>
+                                <input type="number" class="form-control" id="amountPaid" name="amount_paid" step="0.01">
+                            </div>
+
+                            <div class="text-end">
+                                <button class="btn create-sale-btn" type="submit">
+                                    Create Sale
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+        </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+let itemCounter = 1;
+let customerDiscount = 0; // global discount from customer
+
+document.addEventListener("DOMContentLoaded", function () {
+    const itemSelect = document.getElementById("itemSelect");
+    const weightSection = document.getElementById("weightSection");
+    const weightSelect = document.getElementById("weightSelect");
+
+    // When customer changes → fetch discount
+    document.getElementById("customerSelect").addEventListener("change", function () {
+        const customerId = this.value;
+
+        if (customerId) {
+            fetch(`/get-customer-discount/${customerId}/`)
+                .then(res => res.json())
+                .then(data => {
+                    customerDiscount = parseFloat(data.discount || 0);
+                    document.getElementById("flat_discount").textContent = customerDiscount.toFixed(2);
+                    document.getElementById("discountPercentage").value = customerDiscount;
+
+                    // Update shop details
+                    document.getElementById("shopAddress").textContent = data.shop_address || "—";
+                    document.getElementById("shopCity").textContent = data.shop_city || "—";
+                    document.getElementById("shopState").textContent = data.shop_state || "—";
+                    document.getElementById("shopPincode").textContent = data.shop_pincode || "—";
+
+                    // Apply discount to all rows
+                    document.querySelectorAll("#itemsTableBody tr").forEach(row => {
+                        row.querySelector(".discount").value = customerDiscount;
+                        recalcRow(row);
+                    });
+
+                    updateSummary();
+                });
+        } else {
+            customerDiscount = 0;
+            document.getElementById("flat_discount").textContent = "0";
+            document.getElementById("discountPercentage").value = "0";
+
+            // Reset shop details
+            document.getElementById("shopAddress").textContent = "—";
+            document.getElementById("shopCity").textContent = "—";
+            document.getElementById("shopState").textContent = "—";
+            document.getElementById("shopPincode").textContent = "—";
+
+            // Reset all rows discount
+            document.querySelectorAll("#itemsTableBody tr").forEach(row => {
+                row.querySelector(".discount").value = 0;
+                recalcRow(row);
+            });
+
+            updateSummary();
+        }
+    });
+
+    // Step 1: when product selected → fetch weights
+    itemSelect.addEventListener("change", function () {
+        const productId = this.value;
+        weightSelect.innerHTML = `<option value="">Choose weight</option>`;
+        weightSection.style.display = "none";
+
+        if (!productId) return;
+
+        fetch(`/product-batches/${productId}/`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.length === 0) {
+                    alert("No batches available for this product.");
+                    return;
+                }
+                data.forEach(batch => {
+                    let opt = document.createElement("option");
+                    opt.value = batch.weight_per_packet;
+                    opt.textContent = `${batch.weight_per_packet} g`;
+                    weightSelect.appendChild(opt);
+                });
+                weightSection.style.display = "block";
+            });
+    });
+
+    // Step 2: when weight selected → fetch FIFO batches
+    weightSelect.addEventListener("change", function () {
+        const weight = this.value;
+        const productId = itemSelect.value;
+        if (!weight || !productId) return;
+
+        fetch(`/fifo-batch/${productId}/${weight}/`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                const productName = itemSelect.options[itemSelect.selectedIndex].dataset.name;
+                const totalRequestedQty = 1; // default
+                let remainingQty = totalRequestedQty;
+                const itemsToAdd = [];
+
+                // Distribute across batches (FIFO)
+                for (let batch of data.batches) {
+                    if (remainingQty <= 0) break;
+                    const batchQty = Math.min(batch.available_qty, remainingQty);
+
+                    itemsToAdd.push({
+                        id: productId,
+                        batch_id: batch.id,
+                        batch_number: batch.batch_number,
+                        weight: weight,
+                        name: `${productName} (${weight} g)`,
+                        mrp: parseFloat(batch.sale_price),
+                        quantity: batchQty,
+                        gstpercentage: parseFloat(data.gstpercentage),
+                        availableQty: batch.available_qty,
+                        discountPerc: customerDiscount
+                    });
+
+                    remainingQty -= batchQty;
+                }
+
+                if (remainingQty > 0) {
+                    alert("Not enough stock available for this product.");
+                    return;
+                }
+
+                itemsToAdd.forEach(item => {
+                    item.subtotal = item.mrp * item.quantity;
+                    item.discountAmt = (item.subtotal * item.discountPerc) / 100;
+                    item.taxableAmt = item.subtotal - item.discountAmt;
+                    item.taxAmount = (item.taxableAmt * item.gstpercentage) / 100;
+                    item.total = item.taxableAmt + item.taxAmount;
+
+                    addItemToTable(item);
+                });
+
+                // reset selects
+                this.value = "";
+                itemSelect.value = "";
+                weightSection.style.display = "none";
+            });
+    });
+
+    // Delete all items
+    document.getElementById("deleteAllItems").addEventListener("click", function () {
+        document.getElementById("itemsTableBody").innerHTML = "";
+        document.querySelectorAll("input[name='items[]']").forEach(input => input.remove());
+        itemCounter = 1;
+        updateSummary();
+        toggleNoDataMessage();
+    });
+
+    // Free sample checkbox
+    document.getElementById("is_free_sample").addEventListener("change", function () {
+        const isFreeSample = this.checked;
+
+        document.querySelectorAll("#itemsTableBody tr").forEach(row => {
+            if (isFreeSample) {
+                row.querySelector(".discount").value = 0;
+                row.querySelector(".gst").textContent = "0";
+            } else {
+                const originalGST = row.dataset.gst || 0;
+                row.querySelector(".gst").textContent = originalGST;
+            }
+            recalcRow(row, isFreeSample);
+        });
+
+        updateSummary();
+    });
+});
+
+// Add item row
+function addItemToTable(item) {
+    const tbody = document.getElementById('itemsTableBody');
+
+    // Use batch id to allow same product multiple batches
+    if (document.querySelector(`.item-hidden[data-item-id="${item.id}-${item.weight}-${item.batch_id}"]`)) {
+        alert("This batch is already added.");
+        return;
+    }
+
+    const row = document.createElement('tr');
+    row.dataset.id = item.id;
+    row.dataset.weight = item.weight;
+    row.dataset.batchId = item.batch_id;
+    row.dataset.availableQty = item.availableQty;
+    row.dataset.gst = item.gstpercentage;
+
+    row.innerHTML = `
+        <td>${itemCounter}</td>
+        <td>${item.name} <br><small>Batch: ${item.batch_number}</small></td>
+        <td class="mrp">${item.mrp.toFixed(2)}</td>
+        <td><input type="number" class="form-control qty" style="width:70px;" value="${item.quantity}" min="1" max="${item.availableQty}"></td>
+        <td class="subtotal">${item.subtotal.toFixed(2)}</td>
+        <td><input type="number" class="form-control discount" style="width:70px;" value="${item.discountPerc}" readonly></td>
+        <td class="discountAmt">${item.discountAmt.toFixed(2)}</td>
+        <td class="taxableAmt">${item.taxableAmt.toFixed(2)}</td>
+        <td class="gst">${item.gstpercentage.toFixed(2)}</td>
+        <td class="itemTaxAmount">${item.taxAmount.toFixed(2)}</td>
+        <td class="itemTotal">${item.total.toFixed(2)}</td>
+        <td><button type="button" class="btn btn-danger btn-sm" onclick="removeItem('${item.id}-${item.weight}-${item.batch_id}', this)">Remove</button></td>
+    `;
+    tbody.appendChild(row);
+
+    // Hidden input
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'items[]';
+    hiddenInput.value = `${item.id},${item.weight},${item.batch_id},${item.batch_number},${item.quantity},${item.mrp.toFixed(2)},${item.subtotal.toFixed(2)},${item.discountPerc},${item.discountAmt.toFixed(2)},${item.taxableAmt.toFixed(2)},${item.gstpercentage.toFixed(2)},${item.taxAmount.toFixed(2)},${item.total.toFixed(2)}`;
+    hiddenInput.classList.add("item-hidden");
+    hiddenInput.dataset.itemId = `${item.id}-${item.weight}-${item.batch_id}`;
+    document.getElementById('saleOrderForm').appendChild(hiddenInput);
+
+    itemCounter++;
+    updateSummary();
+    toggleNoDataMessage();
+
+    // Qty input listener
+    const qtyInput = row.querySelector('.qty');
+    qtyInput.addEventListener('input', () => recalcRow(row));
+}
+
+// Recalculate row totals
+function recalcRow(row, isFreeSample = document.getElementById("is_free_sample").checked) {
+    const itemId = row.dataset.id;
+    const weight = row.dataset.weight;
+    const batchId = row.dataset.batchId;
+    const availableQty = parseFloat(row.dataset.availableQty) || 0;
+    const hiddenInput = document.querySelector(`.item-hidden[data-item-id="${itemId}-${weight}-${batchId}"]`);
+
+    let price = parseFloat(row.querySelector(".mrp").textContent) || 0;
+    let qty = parseFloat(row.querySelector(".qty").value) || 0;
+    let discountPerc = parseFloat(row.querySelector(".discount").value) || 0;
+    let gstPerc = parseFloat(row.querySelector(".gst").textContent) || 0;
+
+    // Stock validation
+    if (qty > availableQty) {
+        alert(`Only ${availableQty} packets available in stock for this batch.`);
+        qty = availableQty;
+        row.querySelector(".qty").value = availableQty;
+    } else if (qty < 1) {
+        qty = 1;
+        row.querySelector(".qty").value = 1;
+    }
+
+    let subtotal = price * qty;
+    let discountAmt = (subtotal * discountPerc) / 100;
+    let taxableAmt = subtotal - discountAmt;
+    let taxAmt = (taxableAmt * gstPerc) / 100;
+    let total = taxableAmt + taxAmt;
+
+    // Free sample override
+    if (isFreeSample) {
+        subtotal = discountAmt = taxableAmt = taxAmt = total = 0;
+        row.querySelector(".discount").value = 0;
+        row.querySelector(".gst").textContent = "0";
+    }
+
+    // Update row cells
+    row.querySelector(".subtotal").textContent = subtotal.toFixed(2);
+    row.querySelector(".discountAmt").textContent = discountAmt.toFixed(2);
+    row.querySelector(".taxableAmt").textContent = taxableAmt.toFixed(2);
+    row.querySelector(".itemTaxAmount").textContent = taxAmt.toFixed(2);
+    row.querySelector(".itemTotal").textContent = total.toFixed(2);
+
+    // Update hidden input
+    hiddenInput.value = `${itemId},${weight},${batchId},${row.querySelector("td:nth-child(2) small").textContent.replace("Batch: ","")},${qty},${price.toFixed(2)},${subtotal.toFixed(2)},${discountPerc},${discountAmt.toFixed(2)},${taxableAmt.toFixed(2)},${gstPerc.toFixed(2)},${taxAmt.toFixed(2)},${total.toFixed(2)}`;
+
+    updateSummary();
+}
+
+// Remove row
+function removeItem(id, button) {
+    const row = button.closest('tr');
+    row.remove();
+    const hiddenInput = document.querySelector(`.item-hidden[data-item-id="${id}"]`);
+    if (hiddenInput) hiddenInput.remove();
+
+    updateSummary();
+    toggleNoDataMessage();
+}
+</script>
+
+
+
+<script>
+function updateSummary() {
+    let subtotal = 0;        // sum of all item subtotals
+    let totalDiscount = 0;   // sum of item-level discount amounts
+    let taxableAmt = 0;      // subtotal - item-level discount
+    let totalTax = 0;        // sum of item taxes
+    let totalAmount = 0;     // taxable + tax
+    let grandTotal = 0;      // final payable after customer-level discount
+
+    // 1️⃣ Calculate Subtotal (sum of item subtotals)
+    document.querySelectorAll('.subtotal').forEach(cell => {
+        subtotal += parseFloat(cell.innerText) || 0;
+    });
+
+    // 2️⃣ Item-level Discount Amount
+    document.querySelectorAll('.discountAmt').forEach(cell => {
+        totalDiscount += parseFloat(cell.innerText) || 0;
+    });
+
+    // 3️⃣ Taxable Amount (Subtotal - item discount)
+    document.querySelectorAll('.taxableAmt').forEach(cell => {
+        taxableAmt += parseFloat(cell.innerText) || 0;
+    });
+
+    // 4️⃣ Tax Amount
+    document.querySelectorAll('.itemTaxAmount').forEach(cell => {
+        totalTax += parseFloat(cell.innerText) || 0;
+    });
+
+    // 5️⃣ Total Amount before customer discount
+    totalAmount = taxableAmt + totalTax;
+
+    // 6️⃣ Customer-level Discount (%)
+    const discountPercentage = parseFloat(document.getElementById('discountPercentage').value) || 0;
+    const customerDiscountAmt = (totalAmount * discountPercentage) / 100;
+
+    // 7️⃣ Payable Amount after customer discount
+    grandTotal = totalAmount - customerDiscountAmt;
+
+    // 🔹 Update UI
+    document.getElementById('subtotal').innerText = `₹${subtotal.toFixed(2)}`;
+    document.getElementById('discount_amount').innerText = `₹${totalDiscount.toFixed(2)}`;
+    document.getElementById('beforeTax').innerText = `₹${taxableAmt.toFixed(2)}`;
+    document.getElementById('taxAmount').innerText = `₹${totalTax.toFixed(2)}`;
+    document.getElementById('afterTax').innerText = `₹${totalAmount.toFixed(2)}`;
+    document.getElementById('flat_discount').innerText = discountPercentage.toFixed(2);
+    document.getElementById('grandTotal').innerText = `₹${grandTotal.toFixed(2)}`;
+
+    // 🔹 Update Hidden Inputs
+    document.getElementById('subtotalInput').value = subtotal.toFixed(2);
+    document.getElementById('discountAmountInput').value = totalDiscount.toFixed(2);
+    document.getElementById('beforeTaxInput').value = taxableAmt.toFixed(2);
+    document.getElementById('taxAmountInput').value = totalTax.toFixed(2);
+    document.getElementById('afterTaxInput').value = totalAmount.toFixed(2);
+    document.getElementById('grandTotalInput').value = grandTotal.toFixed(2);
+}
+
+function toggleNoDataMessage() {
+    const noData = document.getElementById("noDataMessage");
+    const tbody = document.getElementById("itemsTableBody");
+    if (!noData) return;
+    noData.style.display = tbody.children.length === 0 ? "block" : "none";
+}
+</script>
+
+
+
+
+{% endblock content %}

@@ -1,0 +1,173 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tax Invoice</title>
+
+<!-- ✅ Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+  body { font-family: Arial, sans-serif; font-size: 13px; }
+  .invoice-box { width: 794px; margin: 20px auto; border: 1px solid #000; padding: 10px; background: #fff; }
+  .logo { max-height: 70px; }
+  .title { font-size: 20px; font-weight: bold; }
+  .small { font-size: 12px; }
+  .signature { text-align: center; padding-top: 30px; border-top: 1px solid #000; }
+  @page { size: A4; margin: 12mm; }
+  @media print {
+    .print-btn {
+      display: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="invoice-box">
+
+  <!-- Header -->
+  <div class="row">
+    <div class="col-8">
+      <img src="{% static 'images/logo.png' %}" class="logo mb-2" alt="Logo"><br>
+      <b>INFAB AGRO FOODS PVT LTD</b><br>
+      125/3 Kanminike Village Hejjala Circle<br>
+      South taluk near featherlite Bangalore<br>
+      Bangalore Karnataka 562109 India<br>
+      GSTIN 29AAHCI1372F1ZK<br>
+      Email: infabfoods@gmail.com
+    </div>
+    <div class="col-4 text-end">
+      <div class="title">TAX INVOICE</div>
+    </div>
+  </div>
+
+  <!-- Invoice Meta -->
+  <table class="table table-bordered mt-3">
+    <tr>
+      <td><b>Invoice No</b><br>{{ invoice.invoice_number }}</td>
+      <td><b>Invoice Date</b><br>{{ invoice.created_at|date:"d/m/Y" }}</td>
+      <td><b>Place of Supply</b><br>Karnataka (29)</td>
+      <td><b>Sales person</b><br>{{ orders.customer.user.first_name }} {{ orders.customer.user.last_name }}</td>
+    </tr>
+  </table>
+
+  <!-- Bill To -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <h6 class="fw-bold">Bill To</h6>
+      <b>{{ orders.customer.full_name }}</b><br>
+      {{ orders.customer.shop_address }}<br>
+      {{ orders.customer.shop_city }} - {{ orders.customer.shop_pin }} {{ orders.customer.shop_state }}<br>
+      GSTIN: {{ orders.customer.gstin }}
+    </div>
+  </div>
+
+  <!-- Items -->
+  <table class="table table-bordered table-sm align-middle">
+    <thead class="table-light text-center">
+      <tr>
+        <th>#</th>
+        <th>Item &amp; Description</th>
+        <th>MRP</th>
+        <th>Qty</th>
+        <th>Rate</th>
+        <th>Discount(%)</th>
+        <th>Discount Amt</th>
+        <th>Taxable Amt</th>
+        {% if orders.customer.shop_state == "Karnataka" %}
+          <th>CGST%</th><th>CGST Amt</th>
+          <th>SGST%</th><th>SGST Amt</th>
+        {% else %}
+          <th colspan="2">IGST%</th>
+          <th colspan="2">IGST Amt</th>
+        {% endif %}
+        <th>Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in orderitems %}
+      <tr>
+        <td class="text-center">{{ forloop.counter }}</td>
+        <td>{{ item.product.name }}<br><span class="small">({{ item.weight|default:"N/A"|floatformat:"-2" }} gms)</span></td>
+        <td class="text-end">{{ item.price|floatformat:2 }}</td>
+        <td class="text-end">{{ item.quantity }}</td>
+        <td class="text-end">{{ item.sub_total|floatformat:2 }}</td>
+        <td class="text-center">{{ item.discount_percentage|floatformat:2 }}%</td>
+        <td class="text-end">{{ item.discount_amount|floatformat:2 }}</td>
+        <td class="text-end">{{ item.taxable_amount|floatformat:2 }}</td>
+
+        {% if orders.customer.shop_state|lower == "karnataka" %}
+          <td class="text-end">{{ item.cgst_percent|floatformat:2 }}%</td>
+          <td class="text-end">{{ item.cgst_amount|floatformat:2 }}</td>
+          <td class="text-end">{{ item.sgst_percent|floatformat:2 }}%</td>
+          <td class="text-end">{{ item.sgst_amount|floatformat:2 }}</td>
+        {% else %}
+          <td colspan="2" class="text-center">{{ item.igst_percent|floatformat:2 }}%</td>
+          <td colspan="2" class="text-end">{{ item.igst_amount|floatformat:2 }}</td>
+        {% endif %}
+
+        <td class="text-end">{{ item.total|floatformat:2 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Totals & Notes -->
+  <div class="row">
+    <!-- Notes -->
+    <div class="col-8 small">
+      <b>Total in Words:</b><br>
+      <i>{{ amount_in_words }} Only</i><br><br>
+
+      <b>Notes:</b><br>
+       <strong style="font-size: large;"> Thank you for Trusting Us! Your support inspires us to 
+        Consistently Deliver Quality and Innovation. We Look 
+        Forward to Serving You Again.</strong> <br><br>
+
+      <b>Bank Details:</b><br>
+      Bank: State Bank of India <br>
+      A/c No: 42807658439<br>
+      IFSC: SBIN0017780<br>
+      Branch: Channasandra, Bangalore <br><br>
+
+      <b>Terms & Conditions:</b>
+      <ol>
+        <li>Payment must be made within the due date from the invoice date.</li>
+        <li>Accepted payment methods include Bank Transfer, UPI, DD, Cheque.</li>
+        <li>Cash payments are not accepted.</li>
+        <li>Prices are exclusive of applicable taxes.</li>
+        <li>Orders cannot be canceled once processed.</li>
+        <li>Refund/exchange only for defective/damaged goods.</li>
+        <li>Responsibility ceases for weight once box tape is tampered.</li>
+      </ol>
+    </div>
+
+    <!-- Totals -->
+    <div class="col-4">
+      <table class="table table-bordered table-sm">
+        <tr><td>Sub Total</td><td class="text-end">{{ orders.subtotal|floatformat:2 }}</td></tr>
+        {% if orders.customer.shop_state|lower == "karnataka" %}
+          <tr><td>CGST</td><td class="text-end">{{ orders.cgst_total|floatformat:2 }}</td></tr>
+          <tr><td>SGST</td><td class="text-end">{{ orders.sgst_total|floatformat:2 }}</td></tr>
+        {% else %}
+          <tr><td>IGST</td><td class="text-end">{{ orders.igst_total|floatformat:2 }}</td></tr>
+        {% endif %}
+        <tr class="fw-bold"><td>Total</td><td class="text-end">{{ orders.grand_total|floatformat:2 }}</td></tr>
+      </table>
+      <div class="signature">Authorized Signature</div>
+    </div>
+  </div>
+
+</div>
+<div class="d-flex justify-content-center my-3">
+    <button class="print-btn btn btn-dark" onclick="window.print()">
+        <i class="fas fa-print"></i> Print
+    </button>
+</div>
+
+
+<!-- ✅ Bootstrap JS (optional, for interactivity) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

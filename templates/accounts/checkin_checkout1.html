@@ -1,0 +1,332 @@
+{% extends 'company_admin/base.html' %}
+{% load static %}
+
+{% block title %}Check-In / Check-Out | devRasen{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root {
+
+    --primary-red: #601F2F;
+    --primary-orange: #ffb347;
+    --accent-yellow: #fc3;
+    --light-orange: #fff5e6;
+    --dark-red: #4a1824;
+}
+
+body {
+    background-color: var(--light-orange);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* Header */
+.header {
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    color: var(--dark-red);
+    margin-bottom: 15px;
+}
+
+/* Center buttons */
+.center-buttons {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.center-buttons .btn {
+    font-size: 20px;
+    font-weight: 600;
+    padding: 18px 40px;
+    border-radius: 12px;
+    margin: 0 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    transition: all 0.2s ease;
+}
+
+.center-buttons .btn:hover {
+    transform: translateY(-3px) scale(1.02);
+}
+
+.btn-checkin {
+    background-color: green;
+    color: #fff;
+    border: none;
+}
+.btn-checkin:hover {
+    background-color: #157347;
+}
+
+.btn-checkout {
+    background-color: red;
+    color: #fff;
+    border: none;
+}
+.btn-checkout:hover {
+    background-color: #bb2d3b;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-dialog {
+    margin: 10% auto;
+    max-width: 500px;
+}
+
+.modal-content {
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.modal-content h5 {
+    font-weight: 700;
+    color: var(--dark-red);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+
+/* Card */
+.custom-card {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 8px 32px rgba(96,31,47,0.13), 0 1.5px 8px rgba(255,179,71,0.08);
+    padding: 18px 10px;
+    background: #fff;
+    margin-top: 20px;
+    animation: fadeInUp 0.7s ease-out both;
+}
+@keyframes fadeInUp {
+    0% { opacity: 0; transform: translateY(40px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Table */
+table.dataTable thead th {
+    background-color: rgb(255, 195, 106);
+    padding: 12px 10px;
+    border-bottom: 2px solid var(--primary-red);
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: left;
+}
+
+table.dataTable td {
+    padding: 10px;
+    font-size: 0.95rem;
+    color: var(--dark-red);
+    border-bottom: 1px solid #f3e6d7;
+}
+
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: 0.7rem;
+    border: 1.5px solid var(--primary-orange);
+    background: #fff;
+    color: var(--primary-red);
+    font-size: 1rem;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: var(--primary-red);
+    box-shadow: 0 0 0 2px #ffb34733;
+}
+
+.dataTables_wrapper .dataTables_length label,
+.dataTables_wrapper .dataTables_filter label {
+    color: var(--primary-red);
+    font-weight: 500;
+}
+
+.dataTables_wrapper .dataTables_info {
+    color: var(--primary-red);
+    font-size: 0.97rem;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    display: inline-block;
+    padding: 6px 12px;
+    margin: 0 3px;
+    border-radius: 6px;
+    border: 1px solid var(--primary-orange);
+    background: var(--light-orange);
+    color: var(--primary-red);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: var(--primary-orange);
+    color: #fff !important;
+    border: 1px solid var(--primary-red);
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: var(--primary-red);
+    color: #fff !important;
+    border: 1px solid var(--primary-red);
+}
+</style>
+
+<div class="container mt-3">
+    <h5 class="header">Check-In / Check-Out</h5>
+
+    <!-- Center Buttons -->
+    <div class="center-buttons">
+        {% if is_active %}
+            <button class="btn btn-checkout" onclick="openCheckoutModal()">Check Out</button>
+        {% else %}
+            <button class="btn btn-checkin" onclick="openCheckinModal()">Check In</button>
+        {% endif %}
+    </div>
+
+    <!-- Visit History -->
+    <div class="custom-card">
+        <table id="visitTable" class="table align-middle" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Sl.No</th>
+                    <th>Customer</th>
+                    <th>Check-In Time</th>
+                    <th>Check-Out Time</th>
+                    <th>Visit Description</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in visits %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ v.customer.full_name }}</td>
+                    <td>{{ v.check_in_time|date:"d-m-Y H:i:s" }}</td>
+                    <td>{{ v.check_out_time|date:"d-m-Y H:i:s"|default:"-" }}</td>
+                    <td>{{ v.visit_description|default:"-" }}</td>
+                    <td>
+                        {% if v.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Completed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Check-In Modal -->
+<div class="modal" id="checkinModal">
+  <div class="modal-dialog ">
+    <div class="modal-content p-3">
+      <form method="post" id="checkinForm">
+        {% csrf_token %}
+        <h5 class="mb-3">Check In</h5>
+        <select name="customer" class="form-control mb-3" required>
+          <option value="">-- Select Customer --</option>
+          {% for cust in customers %}
+            <option value="{{ cust.id }}">{{ cust.full_name }} - ({{ cust.shop_name }}-{{ cust.shop_city }})</option>
+          {% endfor %}
+        </select>
+        
+        <div class="modal-footer">
+          <button type="submit" name="action" value="checkin" class="btn btn-outline-success">Confirm</button>
+          <button type="button" class="btn btn-outline-danger" onclick="closeCheckinModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Check-Out Modal -->
+<div class="modal" id="checkoutModal">
+  <div class="modal-dialog">
+    <div class="modal-content p-3">
+      <form method="post">
+        {% csrf_token %}
+        <h5 class="mb-3">Check Out</h5>
+        <textarea name="visit_description" class="form-control mb-3" placeholder="Enter visit description..." required></textarea>
+        <div class="modal-footer">
+          <button type="submit" name="action" value="checkout" class="btn btn-outline-success">Confirm</button>
+          <button type="button" class="btn btn-outline-danger" onclick="closeCheckoutModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.4.1/js/responsive.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+   var table = $("#visitTable").DataTable({
+        responsive: true,
+        dom: "<'top-controls'lf>rt<'bottom-controls'ip>",
+        language: {
+            'paginate': {
+                'previous': '<span class="fa fa-chevron-left"></span>',
+                'next': '<span class="fa fa-chevron-right"></span>'
+            },
+            "lengthMenu": 'Display <select class="form-control input-sm">'+
+                '<option value="10">10</option>'+
+                '<option value="20">20</option>'+
+                '<option value="30">30</option>'+
+                '<option value="40">40</option>'+
+                '<option value="50">50</option>'+
+                '<option value="-1">All</option>'+
+                '</select> results'
+        }
+    });
+
+    $(window).resize(function() {
+        table.columns.adjust().responsive.recalc();
+    });
+});
+
+// Modal functions
+function openCheckinModal() {
+    $("#checkinModal").fadeIn();
+}
+function closeCheckinModal() {
+    $("#checkinModal").fadeOut();
+}
+function openCheckoutModal() {
+    $("#checkoutModal").fadeIn();
+}
+function closeCheckoutModal() {
+    $("#checkoutModal").fadeOut();
+}
+</script>
+
+{% endblock content %}

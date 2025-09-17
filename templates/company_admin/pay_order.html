@@ -1,0 +1,431 @@
+{% extends 'company_admin/base.html' %}
+{% block content %}
+<style>
+    .info-card {
+        /* border-left: 4px solid #4e73df; */
+        transition: all 0.3s ease;
+    }
+    
+    .info-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .payment-header {
+        background: linear-gradient(90deg, #ffb347 0%, #601F2F 100%);
+        border-radius: 0.35rem 0.35rem 0 0 !important;
+    }
+    
+    .balance-badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+        background: rgba(255, 255, 255, 0.9);
+        /* color: #2e59d9; */
+    }
+    
+    .form-control-lg, .form-select-lg {
+        padding: 0.75rem 1rem;
+        font-size: 1.05rem;
+        border-radius: 0.3rem;
+    }
+    
+    .payment-history-table th {
+        background-color: rgb(255, 195, 106);
+    padding: 12px 10px;
+    border-bottom: 2px solid var(--primary-red);
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: left;
+    }
+    
+    .section-title {
+        color: #4e73df;
+        font-weight: 600;
+        border-bottom: 2px solid #f8f9fc;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .btn-payment {
+        min-width: 150px;
+        font-weight: 500;
+    }
+    .gradient-text {
+    background: linear-gradient(90deg, #601F2F 10%, #ffb347 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    display: inline-block;
+    font-weight: 600;
+}
+
+/* For better visibility on the icon */
+.gradient-text .fas {
+    background: linear-gradient(90deg, #601F2F 10%, #ffb347 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.user-btn {
+    background: linear-gradient(90deg, #ffb347 0%, #601F2F 100%);
+    color: #fff;
+    /* border-radius: 1rem; */
+    font-weight: 600;
+    font-size: 1.1rem;
+    border: none;
+    box-shadow: 0 2px 8px rgba(255, 179, 71, 0.25);
+}
+.user-btn:hover {
+        background: linear-gradient(90deg, #601F2F 0%, #ffb347 100%);
+        transform: translateY(-1px);
+    }
+    
+    @media (max-width: 768px) {
+        .card-header h4 {
+            font-size: 1.25rem;
+        }
+        
+        .btn-lg {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+        }
+        
+        .info-card {
+            margin-bottom: 1rem;
+        }
+    }
+    
+    /* Animation for form elements */
+    .form-group {
+        transition: all 0.3s ease;
+    }
+    
+    .form-group:focus-within {
+        transform: translateX(3px);
+    }
+    
+    /* Custom shadow for cards */
+    .card {
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        border: none;
+        border-radius: 0.35rem;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-xxl-8 col-xl-10 col-lg-12">
+            <div class="card">
+                <!-- Card Header -->
+                <div class="card-header payment-header py-3 d-flex flex-column flex-md-row align-items-center justify-content-between">
+                    <div class="d-flex align-items-center mb-2 mb-md-0">
+                        <i class="fas fa-credit-card me-2 text-white-50 fs-4"></i>
+                        <h4 class="m-0 text-white">Payment for Order #{{ order.id }}</h4>
+                    </div>
+                    <span class="balance-badge rounded-pill shadow-sm">
+                        <i class="fas fa-wallet me-1"></i> Balance Due: <span class="fw-bold text-danger">₹ {{ order.balance_due }}</span>
+                    </span>
+                </div>
+                
+                <!-- Card Body -->
+                <div class="card-body">
+                    <!-- Customer and Order Info -->
+                    <div class="row mb-4">
+                        <div class="col-lg-6 mb-3 mb-lg-0">
+                            <div class="info-card p-4 bg-white rounded-3 h-100 border">
+                                <h6 class="text-uppercase mb-3 d-flex align-items-center gradient-text">
+                                    <i class="fas fa-user-circle me-2"></i> Customer Details
+                                </h6>
+                                <div class="d-flex mb-2">
+                                    <div class="me-3 text-muted">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div>
+                                        <strong>Name:</strong> {{ order.customer.full_name }}
+                                    </div>
+                                </div>
+                                <div class="d-flex mb-2">
+                                    <div class="me-3 text-muted">
+                                        <i class="fas fa-store"></i>
+                                    </div>
+                                    <div>
+                                        <strong>Shop:</strong> {{ order.customer.shop_name }}
+                                    </div>
+                                </div>
+                                <div class="d-flex">
+                                    <div class="me-3 text-muted">
+                                        <i class="fas fa-phone"></i>
+                                    </div>
+                                    <div>
+                                        <strong>Phone:</strong> {{ order.customer.phone_number }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="info-card p-4 bg-white rounded-3 h-100 border">
+                                <h6 class="text-uppercase  mb-3 d-flex align-items-center gradient-text">
+                                    <i class="fas fa-receipt me-2"></i> Order Summary
+                                </h6>
+                                <div class="d-flex justify-content-between mb-2 py-2 border-bottom">
+                                    <span class="text-muted">Total Amount:</span>
+                                    <span class="fw-bold">₹{{ order.total_amount }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2 py-2 border-bottom">
+                                    <span class="text-muted">Amount Paid:</span>
+                                    <span class="fw-bold text-success">₹{{ order.total_paid }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between py-2">
+                                    <span class="text-muted">Balance Due:</span>
+                                    <span class="fw-bold text-danger">₹{{ order.balance_due }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Form -->
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <h5 class="section-title gradient-text">
+                            <i class="fas fa-money-bill-wave me-2"></i> Payment Information
+                        </h5>
+                        
+                        <div class="row g-3">
+                            <!-- Amount Field -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="amount_paid" class="form-label fw-bold">Amount to Pay <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-rupee-sign"></i></span>
+                                        <input type="number" 
+                                               name="amount_paid" 
+                                               id="amount_paid" 
+                                               class="form-control form-control-lg" 
+                                               step="0.01" 
+                                               min="0.01" 
+                                               max="{{ order.balance_due }}" 
+                                               value="{{ order.balance_due }}" 
+                                               required
+                                               oninput="validateAmount(this)">
+                                        <!-- <button type="button" class="btn btn-outline-primary" onclick="setFullAmount()">
+                                            <i class="fas fa-coins me-1"></i> Full Amount
+                                        </button> -->
+                                    </div>
+                                    <small class="form-text text-muted">Maximum: ₹{{ order.balance_due }}</small>
+                                    <div class="invalid-feedback">
+                                        Please enter a valid amount between ₹0.01 and ₹{{ order.balance_due }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Payment Mode -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="payment_mode" class="form-label fw-bold">Payment Method <span class="text-danger">*</span></label>
+                                    <select name="payment_mode" id="payment_mode" class="form-select form-select-lg" required>
+                                        <option value="" disabled selected>Select payment method</option>
+                                        <option value="cash">Cash</option>
+                                        <option value="upi">UPI</option>
+                                        <option value="bank_transfer">Bank Transfer</option>
+                                        <option value="cheque">Cheque</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Payment Details (conditional fields) -->
+                            <div class="col-12" id="paymentDetailsContainer" style="display: none;">
+                                <div class="card border-0 bg-light mt-2">
+                                    <div class="card-body p-4">
+                                        <h6 class="mb-3 text-primary">
+                                            <i class="fas fa-info-circle me-2"></i> Payment Details
+                                        </h6>
+                                        <div class="row g-3">
+                                            <div class="col-md-6" id="referenceNumberField" style="display: none;">
+                                                <div class="form-group">
+                                                    <label for="reference_number" class="form-label">Reference Number</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text bg-white"><i class="fas fa-hashtag"></i></span>
+                                                        <input type="text" name="reference_number" id="reference_number" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6" id="bankNameField" style="display: none;">
+                                                <div class="form-group">
+                                                    <label for="bank_name" class="form-label">Bank Name</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text bg-white"><i class="fas fa-university"></i></span>
+                                                        <input type="text" name="bank_name" id="bank_name" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6" id="chequeNumberField" style="display: none;">
+                                                <div class="form-group">
+                                                    <label for="cheque_number" class="form-label">Cheque Number</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text bg-white"><i class="fas fa-file-invoice"></i></span>
+                                                        <input type="text" name="cheque_number" id="cheque_number" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6" id="transactionDateField" style="display: none;">
+                                                <div class="form-group">
+                                                    <label for="transaction_date" class="form-label">Transaction Date</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text bg-white"><i class="fas fa-calendar-alt"></i></span>
+                                                        <input type="date" name="transaction_date" id="transaction_date" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Remarks -->
+                            <div class="col-12 mt-3">
+                                <div class="form-group">
+                                    <label for="remarks" class="form-label fw-bold">
+                                        <i class="fas fa-sticky-note me-1"></i> Notes
+                                    </label>
+                                    <textarea name="remarks" id="remarks" rows="3" class="form-control" 
+                                              placeholder="Any additional information about this payment..."></textarea>
+                                </div>
+                            </div>
+                            
+                            <!-- Form Actions -->
+                            <div class="col-12 mt-4">
+                                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center">
+                                    <a href="{% url 'order_table' %}" class="btn btn-lg btn-outline-secondary mb-2 mb-sm-0 btn-payment">
+                                        <i class="fas fa-arrow-left me-2"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn user-btn">
+                                        <i class="fas fa-credit-card me-2"></i> Process Payment 
+                                    </button>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Payment History -->
+                {% if order.transactions.all %}
+                <div class="card-footer bg-white border-top">
+                    <h5 class="section-title gradient-text mb-3">
+                        <i class="fas fa-history me-2"></i> Payment History
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover payment-history-table">
+                            <thead class="text-uppercase">
+                                <tr>
+                                    <th class="ps-4"><i class="far fa-calendar me-1"></i> Date</th>
+                                    <th><i class="fas fa-file-invoice me-1"></i> Transaction ID</th>
+                                    <th><i class="fas fa-rupee-sign me-1"></i> Amount</th>
+                                    <th><i class="fas fa-money-check-alt me-1"></i> Method</th>
+                                    <th class="pe-4"><i class="fas fa-user-tie me-1"></i> Received By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in order.transactions.all %}
+                                <tr class="align-middle">
+                                    <td class="ps-4">{{ transaction.payment_date|date:"d M Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">{{ transaction.id }}</span>
+                                    </td>
+                                    <td class="fw-bold text-success">₹{{ transaction.amount_paid }}</td>
+                                    <td>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary">
+                                            {{ transaction.get_payment_mode_display }}
+                                        </span>
+                                    </td>
+                                    <td class="pe-4">{{ transaction.received_by.username }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Set full amount when "Full Amount" button is clicked
+    function setFullAmount() {
+        const balanceDue = parseFloat("{{ order.balance_due }}");
+        document.getElementById('amount_paid').value = balanceDue.toFixed(2);
+    }
+    
+    // Validate amount input
+    function validateAmount(input) {
+        const maxAmount = parseFloat("{{ order.balance_due }}");
+        const enteredAmount = parseFloat(input.value);
+        
+        if (enteredAmount > maxAmount) {
+            input.value = maxAmount.toFixed(2);
+        }
+    }
+    
+    // Show/hide additional payment details based on payment method
+    document.getElementById('payment_mode').addEventListener('change', function() {
+        const paymentMethod = this.value;
+        const detailsContainer = document.getElementById('paymentDetailsContainer');
+        const referenceField = document.getElementById('referenceNumberField');
+        const bankField = document.getElementById('bankNameField');
+        const chequeField = document.getElementById('chequeNumberField');
+        const dateField = document.getElementById('transactionDateField');
+        
+        // Hide all fields first
+        referenceField.style.display = 'none';
+        bankField.style.display = 'none';
+        chequeField.style.display = 'none';
+        dateField.style.display = 'none';
+        
+        // Show container if not cash
+        if (paymentMethod !== 'cash') {
+            detailsContainer.style.display = 'block';
+            
+            // Show relevant fields based on payment method
+            if (paymentMethod === 'upi' || paymentMethod === 'bank_transfer') {
+                referenceField.style.display = 'block';
+                bankField.style.display = 'block';
+                dateField.style.display = 'block';
+            } else if (paymentMethod === 'cheque') {
+                chequeField.style.display = 'block';
+                bankField.style.display = 'block';
+                dateField.style.display = 'block';
+            } else if (paymentMethod === 'other') {
+                referenceField.style.display = 'block';
+                dateField.style.display = 'block';
+            }
+        } else {
+            detailsContainer.style.display = 'none';
+        }
+    });
+    
+    // Initialize form validation
+    (function() {
+        'use strict';
+        
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        var forms = document.querySelectorAll('.needs-validation');
+        
+        // Loop over them and prevent submission
+        Array.prototype.slice.call(forms)
+            .forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    
+                    form.classList.add('was-validated');
+                }, false);
+            });
+    })();
+</script>
+{% endblock %}

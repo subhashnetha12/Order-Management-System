@@ -1,0 +1,160 @@
+{% extends 'company_admin/base.html' %}
+{% load static %}
+
+{% block title %}Customer Report{% endblock %}
+{% block content %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<style>
+    body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+    .card { border-radius: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .profile-card { background: linear-gradient(135deg, #36b9cc, #4e73df); color: white; }
+    .profile img { width: 90px; height: 90px; border-radius: 50%; border: 3px solid #fff; object-fit: cover; }
+    .section-title { font-weight: 600; margin-bottom: 15px; color: #333; }
+    .kpi-card { transition: 0.3s; }
+    .kpi-card:hover { transform: translateY(-4px); }
+    .list-group-item { border: none; border-bottom: 1px solid #eee; }
+    .badge-order { font-size: 0.8rem; background: #eef2f7; color: #4e73df; }
+</style>
+
+<div class="container py-4">
+
+    <!-- Customer Info -->
+    <div class="card p-4 mb-4">
+        <div class="d-flex align-items-center">
+
+            <!-- Info -->
+            <div>
+                <h4 class="mb-1 fw-bold">{{ customer.full_name }}</h4>
+                <p class="text-muted mb-1"><i class="fa fa-phone me-2"></i>{{ customer.phone_number }}</p>
+                <p class="text-muted mb-1"><i class="fas fa-envelope me-2"></i>{{ customer.email }}</p>
+                <p class="text-muted mb-1"><i class="fa fa-shop me-2"></i>{{ customer.shop_name }} ({{ customer.shop_type }})</p>
+                <p class="text-muted mb-0"><i class="fa fa-map-marker-alt me-2"></i>{{ customer.shop_city }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Summary -->
+    <div class="row text-center mb-4">
+        <div class="col-md-4">
+            <div class="card kpi-card p-4">
+                <i class="fa-solid fa-receipt fa-2x mb-2 text-primary"></i>
+                <h6>Total Orders</h6>
+                <h3>{{ order_summary.total_orders|default:0 }}</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card kpi-card p-4">
+                <i class="fa-solid fa-sack-dollar fa-2x mb-2 text-success"></i>
+                <h6>Total Spent</h6>
+                <h3>₹ {{ order_summary.total_sales|default:0|floatformat:2 }}</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card kpi-card p-4">
+                <i class="fa-solid fa-wallet fa-2x mb-2 text-warning"></i>
+                <h6>Total Paid</h6>
+                <h3>₹ {{ order_summary.total_paid|default:0|floatformat:2 }}</h3>
+                <small class="text-muted">Balance: ₹ {{ order_summary.total_balance|default:0|floatformat:2 }}</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order List -->
+    <div class="card p-4 mb-4">
+        <h5 class="section-title">Orders</h5>
+        <ul class="list-group list-group-flush">
+            {% for order in orders %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="fa-solid fa-file-invoice-dollar me-2 text-secondary"></i>
+                        Order #{{ order.id }} - {{ order.order_date|date:"d M Y" }}
+                    </span>
+                    <span class="badge badge-order">
+                        ₹ {{ order.grand_total }} | Paid: ₹ {{ order.total_paid }} | Bal: ₹ {{ order.balance_due }}
+                    </span>
+                </li>
+            {% empty %}
+                <li class="list-group-item">No orders found.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Product Sales Chart -->
+    <div class="card p-4">
+        <h5 class="section-title">Product-wise Purchases</h5>
+        <canvas id="productChart" height="140"></canvas>
+    </div>
+
+</div>
+
+<script>
+    const productData = {
+        labels: JSON.parse('{{ product_labels|safe|escapejs }}'),
+        datasets: [
+            {
+                label: 'Total Spent (₹)',
+                data: JSON.parse('{{ product_values|safe|escapejs }}'),
+                backgroundColor: '#4e73df',
+                borderRadius: 10,
+                yAxisID: 'y',
+            },
+            {
+                label: 'Quantity',
+                data: JSON.parse('{{ product_qty|safe|escapejs }}'),
+                backgroundColor: '#1cc88a',
+                borderRadius: 10,
+                yAxisID: 'y1',
+            }
+        ]
+    };
+
+    new Chart(document.getElementById('productChart'), {
+        type: 'bar',
+        data: productData,
+        options: {
+            responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: { display: true },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            if (ctx.dataset.label === 'Total Spent (₹)') {
+                                return "₹ " + ctx.formattedValue;
+                            }
+                            return "Qty: " + ctx.formattedValue;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Total Spent (₹)'
+                    }
+                },
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    grid: { drawOnChartArea: false },
+                    title: {
+                        display: true,
+                        text: 'Quantity'
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+
+{% endblock content %}

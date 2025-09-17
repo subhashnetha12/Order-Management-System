@@ -1,0 +1,473 @@
+{% extends 'company_admin/base.html' %}
+{% load static %}
+
+{% block title %}Order Reports | devRasen{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root {
+    --primary-red: #601F2F;
+    --primary-orange: #ffb347;
+    --accent-yellow: #fc3;
+    --light-orange: #fff5e6;
+    --dark-red: #4a1824;
+}
+
+body {
+    background-color: var(--light-orange);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.header {
+    min-width: 30%;
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    letter-spacing: 1px;
+    background-image: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, var(--primary-orange), var(--primary-red));
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 1.2rem;
+    padding: 8px 16px;
+    box-shadow: 0 2px 8px rgba(255,179,71,0.10);
+    text-decoration: none;
+}
+.btn-primary:hover {
+    background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 4px 16px rgba(255,179,71,0.18);
+}
+
+.custom-card {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 8px 32px rgba(96,31,47,0.13), 0 1.5px 8px rgba(255,179,71,0.08);
+    padding: 18px 10px;
+    background: #fff;
+    margin-top: 10px;
+}
+
+table.dataTable thead th {
+    background-color: rgb(255, 195, 106);
+    padding: 10px 5px;
+    border-bottom: 2px solid var(--primary-red);
+    font-size: 1rem;
+    font-weight: 600;
+}
+table.dataTable td {
+    padding:  5px;
+    font-size: 0.95rem;
+    color: var(--primary-red);
+    border-bottom: 1px solid #f3e6d7;
+}
+table.dataTable tbody tr:hover {
+    background: var(--accent-yellow);
+    color: var(--primary-red);
+}
+
+.btn-icon { background: none; border: none; cursor: pointer; }
+
+.order-items-wrapper { max-height: 250px; overflow: auto; }
+.order-items-table { font-size: 13px; min-width: 800px; white-space: nowrap; }
+.order-items-table th { background: #f8f9fa; position: sticky; top: 0; }
+
+.dataTables_wrapper .top-controls, .dataTables_wrapper .bottom-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: 0.7rem;
+    border: 1.5px solid var(--primary-orange);
+    background: #fff;
+    color: var(--primary-red);
+    font-size: 1rem;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: var(--primary-red);
+    box-shadow: 0 0 0 2px #ffb34733;
+}
+
+.dataTables_wrapper .dataTables_length label,
+.dataTables_wrapper .dataTables_filter label {
+    color: var(--primary-red);
+    font-weight: 500;
+}
+
+.dataTables_wrapper .dataTables_info {
+    color: var(--primary-red);
+    font-size: 0.97rem;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 6px 12px;
+    margin: 0 3px;
+    border-radius: 6px;
+    border: 1px solid var(--primary-orange);
+    background: var(--light-orange);
+    color: var(--primary-red);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: var(--primary-orange);
+    color: #fff !important;
+    border: 1px solid var(--primary-red);
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: var(--primary-red);
+    color: #fff !important;
+    border: 1px solid var(--primary-red);
+}
+
+@media (max-width: 767px) {
+    .header { font-size: 18px !important; }
+    table.dataTable td { font-size: 12px; }
+}
+</style>
+
+<div class="container mt-1">
+    <div class="mb-2 d-flex justify-content-between flex-wrap">
+        <h5 class="header">Order Reports</h5>
+        <div style="position: relative;">
+            <button onclick="toggleColumnSelector()" class="btn btn-success">Export to Excel</button>
+            <div id="columnSelector" style="display:none; position:absolute; top:100%; right:0; background:#fff; border:1px solid #ccc; border-radius:5px; padding:10px; z-index:100;">
+                <strong>Select Columns</strong><br>
+                <form id="exportForm"></form>
+                <button type="button" onclick="exportToExcelSelected()" class="btn btn-success btn-sm mt-2">Export</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters d-flex flex-wrap align-items-center mb-3">
+        <input type="text" id="dateRange" class="form-control me-2 mb-2" style="max-width: 220px;" placeholder="Select Date Range">
+
+        <select id="salespersonFilter" class="form-select me-2 mb-2" style="max-width: 220px;">
+            <option value="">All Salespersons</option>
+            {% for sp in salespersons %}
+                <option value="{{ sp.username }}">{{ sp.username }}</option>
+            {% endfor %}
+        </select>
+
+        <select id="customerFilter" class="form-select me-2 mb-2" style="max-width: 220px;">
+            <option value="">All Customers</option>
+            {% for cust in customers %}
+                <option value="{{ cust.full_name }}">{{ cust.full_name }}</option>
+            {% endfor %}
+        </select>
+
+        <select id="shopTypeFilter" class="form-select me-2 mb-2" style="max-width: 220px;">
+            <option value="">All Shop Types</option>
+            <option value="NMT">National Modern Trade</option>
+            <option value="MT">Modern Trade</option>
+            <option value="SMT">Semi Modern Trade</option>
+            <option value="SPECIAL">Speciality Store</option>
+            <option value="GT">General Trade</option>
+        </select>
+
+        <select id="cityFilter" class="form-select me-2 mb-2" style="max-width: 220px;">
+            <option value="">All Cities</option>
+            {% for city in cities %}
+                {% if city %}
+                    <option value="{{ city }}">{{ city }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+
+        <select id="ordeType" class="form-select me-2 mb-2" style="max-width: 220px;">
+            <option value="">Order Type</option>
+            <option value="Free">Free Order</option>
+            <option value="Regular">Regular Order</option>
+        </select>
+
+        <button id="clearFilter" class="btn btn-secondary mb-2">Clear</button>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="custom-card table-responsive">
+        <table id="ordertable" class="table table-bordered align-middle" style="width:100%">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Salesman</th>
+                    <th>Order ID</th>
+                    <th>Order Date</th>
+                    <th>Free/Regular</th>
+                    <th>Customer</th>
+                    <th>Shop Name</th>
+                    <th>Shop Type</th>
+                    <th>Delivery Status</th>
+                    <th>Payment Status</th>
+                    <th>Total Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in order_rows %}
+                <tr data-items='{{ row.items_json|safe }}'>
+                    <td class="details-control" style="cursor:pointer; text-align:center;">
+                        <i class="fa fa-plus-circle text-success"></i>
+                    </td>
+                    <td>{{ row.salesman }}</td>
+                    <td>{{ row.order_id }}</td>
+                    <td>{{ row.order_date|date:'d-m-Y' }}</td>
+                    <td>
+                        {% if row.is_free_sample %}
+                            Free Sample
+                        {% else %}
+                            Regular Order
+                        {% endif %}
+                    </td>
+                    <td>{{ row.customer_name }}<br><small>{{ row.customer_phone }}</small></td>
+                    <td>{{ row.shop_name }}<br> <small>{{ row.shop_city }}</small></td>
+                    <td>{{ row.shop_type }}</td>
+                    <td>{{ row.delivery_status|title }}</td>
+                    <td>{{ row.payment_status|title }}</td>
+                    <td>₹ {{ row.total_amount }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+<script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
+<script>
+$(document).ready(function () {
+    function parseDMY(dmy) {
+        if (!dmy) return null;
+        let parts = dmy.split("-");
+        if (parts.length !== 3) return null;
+        return new Date(parts[2], parts[1] - 1, parts[0]);
+    }
+
+    let startDate = null, endDate = null;
+
+    // Date range picker
+    $('#dateRange').daterangepicker({
+        autoUpdateInput: false,
+        locale: { cancelLabel: 'Clear' }
+    });
+
+    $('#dateRange').on('apply.daterangepicker', function(ev, picker) {
+        startDate = picker.startDate.toDate();
+        endDate = picker.endDate.toDate();
+        $(this).val(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
+        table.draw();
+    });
+
+    $('#dateRange').on('cancel.daterangepicker', function() {
+        $(this).val('');
+        startDate = endDate = null;
+        table.draw();
+    });
+
+    // Custom filter
+    $.fn.dataTable.ext.search.push(function (settings, data) {
+        if (settings.nTable.id !== "ordertable") return true; // only for our table
+
+        let dateStr = data[3] || ""; // order date column
+        let salesmanCol = (data[1] || "").toLowerCase();
+        let customerCol = (data[5] || "").toLowerCase();
+        let shopTypeCol = (data[7] || "").toLowerCase();
+        let shopCityCol = (data[6] || "").toLowerCase();
+        let ordeTypeCol = (data[4] || "").toLowerCase();
+
+        let salesperson = ($('#salespersonFilter').val() || "").toLowerCase();
+        let customer = ($('#customerFilter').val() || "").toLowerCase();
+        let shopType = ($('#shopTypeFilter').val() || "").toLowerCase();
+        let shopCity = ($('#cityFilter').val() || "").toLowerCase();
+        let ordeType = ($('#ordeType').val() || "").toLowerCase();
+
+        if (customer && !customerCol.includes(customer)) return false;
+        if (salesperson && !salesmanCol.includes(salesperson)) return false;
+        if (shopType && !shopTypeCol.includes(shopType)) return false;
+        if (shopCity && !shopCityCol.includes(shopCity)) return false;
+        if (ordeType && !ordeTypeCol.includes(ordeType)) return false;
+
+        if (dateStr) {
+            let rowDate = parseDMY(dateStr);
+            if (startDate && endDate) {
+                if (!(rowDate >= startDate && rowDate <= endDate)) return false;
+            }
+        }
+        return true;
+    });
+
+    // Init DataTable
+    let table = $("#ordertable").DataTable({
+        responsive: false,
+        order: [[2, 'desc']],
+        columnDefs: [{ orderable: false, targets: 0 }]
+    });
+
+    // Re-draw table on filter change
+    $('#salespersonFilter, #customerFilter, #shopTypeFilter, #cityFilter, #ordeType').on('change', function () {
+        table.draw();
+    });
+
+    $('#clearFilter').on('click', function() {
+        $('#dateRange').val('');
+        $('#salespersonFilter').val('');
+        $('#customerFilter').val('');
+        $('#shopTypeFilter').val('');
+        $('#ordeType').val('');
+        startDate = endDate = null;
+        table.draw();
+    });
+
+    // Expand/Collapse Items
+    $('#ordertable tbody').on('click', 'td.details-control i', function () {
+        let tr = $(this).closest('tr');
+        let row = table.row(tr);
+        let icon = $(this);
+
+        if (row.child.isShown()) {
+            row.child.hide();
+            tr.removeClass('shown');
+            icon.removeClass('fa-minus-circle text-danger')
+                .addClass('fa-plus-circle text-success');
+        } else {
+            let items = tr.attr('data-items') ? JSON.parse(tr.attr('data-items')) : [];
+            if (!items.length) return;
+
+            let html = `
+                <div class="order-items-wrapper">
+                    <table class="table table-sm table-bordered order-items-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Subtotal</th>
+                                <th>Discount %</th>
+                                <th>Discount Amt</th>
+                                <th>Taxable Amt</th>
+                                <th>GST %</th>
+                                <th>GST Amt</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            items.forEach(item => {
+                html += `<tr>
+                    <td>${item.product}${item.weight ? ' (' + item.weight + ' grms)' : ''}</td>
+                    <td>${item.quantity}</td>
+                    <td>₹ ${item.price}</td>
+                    <td>${item.sub_total}</td>
+                    <td>${item.discount_percentage}</td>
+                    <td>${item.discount_amount}</td>
+                    <td>${item.taxable_amount}</td>
+                    <td>${item.gst_percentage}</td>
+                    <td>${item.gst_amount}</td>
+                    <td>₹ ${item.total}</td>
+                </tr>`;
+            });
+
+            html += `</tbody></table></div>`;
+            row.child(`<td colspan="${$('#ordertable thead th').length}">${html}</td>`).show();
+            tr.addClass('shown');
+            icon.removeClass('fa-plus-circle text-success')
+                .addClass('fa-minus-circle text-danger');
+        }
+    });
+});
+
+// Excel Export Functions
+function toggleColumnSelector() {
+    const selector = document.getElementById('columnSelector');
+    selector.style.display = selector.style.display === 'none' ? 'block' : 'none';
+    if (!selector.dataset.built) { buildColumnSelector(); selector.dataset.built = "true"; }
+}
+function buildColumnSelector() {
+    const headers = document.querySelectorAll('#ordertable thead th');
+    const form = document.getElementById('exportForm'); form.innerHTML = '';
+    headers.forEach((th, index) => {
+        if (index === 0) return;
+        form.innerHTML += `<div><input type="checkbox" id="col_${index}" value="${index}" checked> <label for="col_${index}">${th.innerText}</label></div>`;
+    });
+}
+function exportToExcelSelected() {
+    const selectedCols = Array.from(document.querySelectorAll('#exportForm input:checked')).map(i => parseInt(i.value));
+    const rows = Array.from(document.querySelectorAll('#ordertable tbody tr'));
+    const exportTable = document.createElement('table');
+
+    const headerRow = exportTable.insertRow();
+    const headerCells = document.querySelectorAll('#ordertable thead th');
+    selectedCols.forEach(colIndex => { if (headerCells[colIndex]) headerRow.insertCell().innerText = headerCells[colIndex].innerText.trim(); });
+
+    rows.forEach(row => {
+        if ($(row).hasClass('child')) return;
+        const newRow = exportTable.insertRow();
+        const cells = row.querySelectorAll('th, td');
+        selectedCols.forEach(colIndex => { if (cells[colIndex]) newRow.insertCell().innerText = cells[colIndex].innerText.trim(); });
+
+        const itemsData = row.getAttribute("data-items");
+        if (itemsData) {
+            try {
+                const items = JSON.parse(itemsData);
+                if (items.length > 0) {
+                    const itemHeader = exportTable.insertRow();
+                    itemHeader.insertCell().innerText = "👉 Items";
+                    ["Product","Qty","Price","Subtotal","Discount %","Discount Amt","Taxable Amt","GST %","GST Amt","Total"]
+                        .forEach(h => itemHeader.insertCell().innerText = h);
+                }
+                items.forEach(item => {
+                    const itemRow = exportTable.insertRow();
+                    itemRow.insertCell().innerText = "";
+                    itemRow.insertCell().innerText = item.product || "";
+                    itemRow.insertCell().innerText = item.quantity || "";
+                    itemRow.insertCell().innerText = item.price || "";
+                    itemRow.insertCell().innerText = item.sub_total || "";
+                    itemRow.insertCell().innerText = item.discount_percentage || "";
+                    itemRow.insertCell().innerText = item.discount_amount || "";
+                    itemRow.insertCell().innerText = item.taxable_amount || "";
+                    itemRow.insertCell().innerText = item.gst_percentage || "";
+                    itemRow.insertCell().innerText = item.gst_amount || "";
+                    itemRow.insertCell().innerText = item.total || "";
+                });
+            } catch (e) { console.error("Invalid JSON in row.items_json", e); }
+        }
+    });
+
+    const ws = XLSX.utils.table_to_sheet(exportTable);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Order Report');
+    XLSX.writeFile(wb, `order_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+}
+</script>
+
+{% endblock content %}

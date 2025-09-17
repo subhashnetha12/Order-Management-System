@@ -1,0 +1,167 @@
+{% extends 'company_admin/base.html' %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+    body {
+        background: linear-gradient(120deg, #fff5e6 60%, #fef2e6 100%);
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .card {
+        border-radius: 1.2rem;
+        box-shadow: 0 6px 32px rgba(96, 31, 47, 0.10);
+        width: 100%;
+        max-width: 1300px;
+        margin: 0 auto;
+        border: none;
+        background: #fff;
+    }
+
+    .form-label {
+        font-weight: bold !important;
+        color: #601F2F;
+    }
+
+    .user-btn {
+        background: linear-gradient(90deg, #ffb347 0%, #601F2F 100%);
+        color: #fff;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border: none;
+        box-shadow: 0 2px 8px rgba(255, 179, 71, 0.25);
+    }
+
+    .user-btn:hover {
+        background: linear-gradient(90deg, #601F2F 0%, #ffb347 100%);
+        transform: translateY(-1px);
+    }
+
+    .gradient-title {
+        background: linear-gradient(90deg, #601F2F 10%, #ffb347 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent;
+        font-weight: 700;
+        font-family: 'Poppins', sans-serif;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control, .form-select {
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        border: 1.5px solid #e2e8f0;
+        background: #fdfdfd;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #ffb347;
+        box-shadow: 0 0 0 2px #ffb34733;
+    }
+
+    .input-group-text {
+        background: #fdfdfd;
+    }
+
+    label.form-label {
+        font-weight: 500;
+        letter-spacing: 0.2px;
+    }
+
+    .input-group .btn {
+        border-radius: 0 0.5rem 0.5rem 0;
+    }
+
+    .input-group input {
+        border-radius: 0.5rem 0 0 0.5rem;
+    }
+
+    @media (max-width: 991.98px) {
+        .card {
+            max-width: 98%;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .card {
+            max-width: 100%;
+            padding: 1rem !important;
+        }
+    }
+</style>
+
+<div class="container py-2">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card p-4">
+                <h2 class="text-center mb-4 gradient-title">{% if edit_user %}Edit{% else %}Add{% endif %} Daily Production</h2>
+
+                <form method="post" action="{% if edit_daily_production %}{% url 'edit_daily_production' edit_daily_production.id %}{% else %}{% url 'add_daily_production' %}{% endif %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="product" class="form-label">Product</label>
+                            <select id="product" name="product" class="form-select" required>
+                                <option value="" disabled selected hidden>--Select Product--</option>
+                                {% for product in products %}
+                                <option value="{{ product.id }}" {% if edit_daily_production and edit_daily_production.product.id == product.id %}selected{% endif %}>
+                                    {{ product.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="batch_number" class="form-label">Batch Number</label>
+                            <input type="text" id="batch_number" name="batch_number" class="form-control"
+                                value="{{ edit_daily_production.batch_number|default:'' }}" placeholder="Enter batch number">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="no_of_packets" class="form-label">No of Packets </label>
+                            <input type="number" id="stock_in" name="stock_in" class="form-control" required
+                                value="{{ edit_daily_production.stock_in|default:'' }}" placeholder="Enter quantity">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="weight" class="form-label">Weight per Packets (in grams)</label>
+                            <input type="number" id="weight" name="weight" class="form-control" placeholder="Enter weight per packet" required
+                                value="{{ edit_daily_production.weight_per_packet|default:'' }}" >
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="sale_price" class="form-label">Sale Price (₹)</label>
+                            <input type="number" step="0.01" id="sale_price" name="sale_price" class="form-control" required
+                                value="{{ edit_daily_production.sale_price|default:'' }}" placeholder="0.00">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="mrp" class="form-label">MRP (₹)</label>
+                            <input type="number" step="0.01" id="mrp" name="mrp" class="form-control" required
+                                value="{{ edit_daily_production.mrp|default:'' }}" placeholder="0.00">
+                        </div>
+                        
+
+                        <div class="col-md-6">
+                            <label for="manufactured_date" class="form-label">Manufactured Date</label>
+                            <input type="date" id="manufactured_date" name="manufactured_date" class="form-control"
+                                value="{{ edit_daily_production.manufactured_date|date:'Y-m-d' }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="expiry_date" class="form-label">Expiry Date</label>
+                            <input type="date" id="expiry_date" name="expiry_date" class="form-control"
+                                value="{{ edit_daily_production.expiry_date|date:'Y-m-d' }}" required>
+                        </div>
+
+                    <button type="submit" class="btn user-btn w-100 mt-4">
+                        <i class="fas fa-user-{% if edit_daily_production %}edit{% else %}plus{% endif %} me-2"></i>
+                        {% if edit_daily_production %} Update {% else %} Add {% endif %} Daily Production
+                    </button>
+                </form>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

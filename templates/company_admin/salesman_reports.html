@@ -1,0 +1,424 @@
+
+{% extends 'company_admin/base.html' %}
+{% load static %}
+
+{% block title %}DataTable | devRasen{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root {
+    --primary-red: #601F2F;
+    --primary-orange: #ffb347;
+    --accent-yellow: #fc3;
+    --light-orange: #fff5e6;
+    --dark-red: #4a1824;
+    --sidebar-width: 280px;
+    --sidebar-collapsed: 60px;
+}
+
+body {
+    background-color: var(--light-orange);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.header {
+    min-width: 30%;
+    color: transparent;
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    border-radius: 12px;
+    padding: 8px 24px !important;
+    letter-spacing: 1px;
+    border: none;
+    background-image: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, var(--primary-orange), var(--primary-red));
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 1.2rem;
+    padding: 8px 16px;
+    box-shadow: 0 2px 8px rgba(255,179,71,0.10);
+    text-decoration: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 4px 16px rgba(255,179,71,0.18);
+}
+
+.custom-card {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 8px 32px rgba(96,31,47,0.13), 0 1.5px 8px rgba(255,179,71,0.08);
+    padding: 18px 10px;
+    background: #fff;
+    margin-top: 10px;
+    animation: fadeInUp 0.7s ease-out both;
+}
+
+@keyframes fadeInUp {
+    0% { opacity: 0; transform: translateY(40px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+table.dataTable {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1.5px 8px rgba(255,179,71,0.04);
+}
+
+table.dataTable thead th {
+    background-color: rgb(255, 195, 106);
+    padding: 12px 10px;
+    border-bottom: 2px solid var(--primary-red);
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: left;
+}
+
+table.dataTable td {
+    padding: 10px;
+    font-size: 0.98rem;
+    color: var(--primary-red);
+    vertical-align: middle;
+    border-bottom: 1px solid #f3e6d7;
+    background: #fff;
+}
+
+table.dataTable tr {
+    transition: background 0.2s;
+}
+
+table.dataTable tbody tr:hover {
+    background: var(--accent-yellow);
+    color: var(--primary-red);
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    padding: 0 2px;
+    margin: 0 2px;
+    cursor: pointer;
+    transition: transform 0.15s;
+    display: inline-block;
+}
+
+.btn-icon:hover {
+    transform: scale(1.15);
+}
+
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: 0.7rem;
+    border: 1.5px solid var(--primary-orange);
+    background: #fff;
+    color: var(--primary-red);
+    font-size: 1rem;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: var(--primary-red);
+    box-shadow: 0 0 0 2px #ffb34733;
+}
+
+.dataTables_wrapper .dataTables_length label,
+.dataTables_wrapper .dataTables_filter label {
+    color: var(--primary-red);
+    font-weight: 500;
+}
+
+.dataTables_wrapper .dataTables_info {
+    color: var(--primary-red);
+    font-size: 0.97rem;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    display: inline-block;
+    padding: 6px 12px;
+    margin: 0 3px;
+    border-radius: 6px;
+    border: 1px solid var(--primary-orange);
+    background: var(--light-orange);
+    color: var(--primary-red);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: var(--primary-orange);
+    color: #fff !important;
+    border: 1px solid var(--primary-red);
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: var(--primary-red);
+    color: #fff !important;
+    border: 1px solid var(--primary-red);
+}
+
+
+
+@media (max-width: 991.98px) {
+    .custom-card { padding: 10px 2px; }
+}
+@media (max-width: 767px) {
+    .header { font-size: 18px !important; padding: 6px 10px !important; }
+    .custom-card { padding: 6px 1px; }
+    table.dataTable td { font-size: 12px; }
+    .dataTables_wrapper { overflow-x: auto; }
+}
+
+.dataTables_wrapper .top-controls, .dataTables_wrapper .bottom-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+.d-flex label{
+    margin-right: 3rem !important;
+    width:22px;
+}
+.d-flex input{
+    margin-right: 3rem !important;
+    
+}
+
+.card {
+    border-radius: 10px;
+    transition: transform 0.2s;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+.badge {
+    font-size: 0.8rem;
+}
+
+</style>
+
+
+<div class="container mt-1">
+
+    <h5 class="header mb-3">Salesman Report</h5>
+
+    <!-- 🔹 Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card p-3 text-center">
+                <h6>Total Salesman</h6>
+                <h4>{{ total_salesman }}</h4>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card p-3 text-center">
+                <h6>Active Salesman</h6>
+                <h4>{{ active_salesman }}</h4>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card p-3 text-center">
+                <h6>Total Revenue</h6>
+                <h4>₹ {{ total_revenue|floatformat:2 }}</h4>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card p-3 text-center">
+                <h6>Pending Balance</h6>
+                <h4>₹ {{ pending_balance|floatformat:2 }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔹 Top 5 Salesmen by Revenue -->
+    <div class="card shadow-sm p-3 mb-4 h-100">
+        <h5 class="header mb-3">Top 5 Salesmen By Revenue</h5>
+        <div class="list-group">
+            {% for s in top_salesman_list %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-dark rounded-pill me-2">#{{ forloop.counter }}</span>
+                    <strong>{{ s.first_name }} {{ s.last_name }}</strong>
+                </div>
+                <div class="text-end">
+                    <div>₹ {{ s.revenue }}</div>
+                    <small class="text-muted">{{ s.orders }} Orders</small>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center text-muted">No salesman data available</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 🔹 Salesman Reports Table -->
+    <div class="table-container">
+        <!-- <div class="mb-0 p-0 d-flex justify-content-between flex-wrap m-1">
+            <h5 class="header">Salesman Reports</h5>
+            <div style="position: relative; display: inline-block;">
+                <button onclick="toggleColumnSelector('salesmantable', 'columnSelectorSalesman')" class="btn btn-success">
+                    Export to Excel
+                </button>
+
+                <div id="columnSelectorSalesman"
+                     style="min-width: 200px; display:none; position:absolute; top:100%; right:0; background:#fff; border:1px solid #ccc; border-radius:5px; padding:10px; box-shadow:0 2px 6px rgba(0,0,0,0.2); z-index:100;">
+                    <strong>Select Columns</strong><br>
+                    <form id="exportFormSalesman"></form>
+                    <button type="button" onclick="exportToExcelSelected('salesmantable', 'exportFormSalesman')" class="btn btn-success btn-sm mt-2">
+                        Export
+                    </button>
+                </div>
+            </div>
+        </div> -->
+
+        <div class="custom-card">
+            <table id="salesmantable" class="table align-middle" style="width:100%">
+                <thead class="table-header">
+                    <tr>
+                        <th>Sl.No</th>
+                        <th>Date Of Joining</th>
+                        <th>Full Name</th>
+                        <th>Phone No</th>
+                        <th>Email</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for salesman in salesmen %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ salesman.created_at|date:'d-m-Y' }}</td>
+                            <td>{{ salesman.first_name }} {{ salesman.last_name }}</td>
+                            <td>{{ salesman.phone_number }}</td>
+                            <td>{{ salesman.email }}</td>
+                            <td>
+                                <a href="{% url 'salesman_report' salesman.id %}" class="btn btn-sm btn-primary">View Reports</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.4.1/js/responsive.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    var table = $("#salesmantable").DataTable({
+        responsive: true,
+        dom: "<'top-controls'lf>rt<'bottom-controls'ip>",
+        language: {
+            'paginate': {
+                'previous': '<span class="fa fa-chevron-left"></span>',
+                'next': '<span class="fa fa-chevron-right"></span>'
+            },
+            "lengthMenu": 'Display <select class="form-control input-sm">'+
+                '<option value="10">10</option>'+
+                '<option value="20">20</option>'+
+                '<option value="30">30</option>'+
+                '<option value="40">40</option>'+
+                '<option value="50">50</option>'+
+                '<option value="-1">All</option>'+
+                '</select> results'
+        }
+    });
+
+    $(window).resize(function() {
+        table.columns.adjust().responsive.recalc();
+    });
+});
+
+</script>
+
+
+
+<script>
+function toggleColumnSelector() {
+    const selector = document.getElementById('columnSelector');
+    selector.style.display = selector.style.display === 'none' ? 'block' : 'none';
+    
+    if (selector.dataset.built !== "true") {
+        buildColumnSelector();
+        selector.dataset.built = "true"; // build only once
+    }
+}
+
+function buildColumnSelector() {
+    const table = document.getElementById('salesmantable');
+    const headers = table.querySelectorAll('thead th');
+    const form = document.getElementById('exportForm');
+
+    form.innerHTML = '';
+    headers.forEach((th, index) => {
+        if (th.innerText.trim() === 'Actions') return; // skip Actions column
+        const id = `col_${index}`;
+        form.innerHTML += `
+            <div>
+                <input type="checkbox" id="${id}" name="columns" value="${index}" checked>
+                <label for="${id}">${th.innerText.trim()}</label>
+            </div>
+        `;
+    });
+}
+
+function exportToExcelSelected() {
+    const selectedCols = Array.from(document.querySelectorAll('#exportForm input[name="columns"]:checked'))
+        .map(input => parseInt(input.value));
+
+    const table = document.getElementById('salesmantable');
+    const rows = Array.from(table.querySelectorAll('tr'));
+
+    const exportTable = document.createElement('table');
+
+    rows.forEach(row => {
+        const newRow = exportTable.insertRow();
+        const cells = row.querySelectorAll('th, td');
+
+        selectedCols.forEach(colIndex => {
+            const cell = cells[colIndex];
+            if (cell) {
+                const newCell = newRow.insertCell();
+                newCell.innerHTML = cell.innerText.trim();
+            }
+        });
+    });
+
+    const ws = XLSX.utils.table_to_sheet(exportTable);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Salesman Report');
+
+    const date = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `salesman_report_${date}.xlsx`);
+}</script>
+{% endblock content %}

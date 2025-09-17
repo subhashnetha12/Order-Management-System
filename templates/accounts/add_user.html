@@ -1,0 +1,336 @@
+{% extends 'company_admin/base.html' %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+    body {
+        background: linear-gradient(120deg, #fff5e6 60%, #fef2e6 100%);
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .card {
+        border-radius: 1.2rem;
+        box-shadow: 0 6px 32px rgba(96, 31, 47, 0.10);
+        width: 100%;
+        max-width: 1300px;
+        margin: 0 auto;
+        border: none;
+        background: #fff;
+    }
+
+    .form-label {
+        font-weight: bold !important;
+        color: #601F2F;
+    }
+
+    .user-btn {
+        background: linear-gradient(90deg, #ffb347 0%, #601F2F 100%);
+        color: #fff;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border: none;
+        box-shadow: 0 2px 8px rgba(255, 179, 71, 0.25);
+    }
+
+    .user-btn:hover {
+        background: linear-gradient(90deg, #601F2F 0%, #ffb347 100%);
+        transform: translateY(-1px);
+    }
+
+    .gradient-title {
+        background: linear-gradient(90deg, #601F2F 10%, #ffb347 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent;
+        font-weight: 700;
+        font-family: 'Poppins', sans-serif;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control, .form-select {
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        border: 1.5px solid #e2e8f0;
+        background: #fdfdfd;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #ffb347;
+        box-shadow: 0 0 0 2px #ffb34733;
+    }
+
+    .input-group-text {
+        background: #fdfdfd;
+    }
+
+    label.form-label {
+        font-weight: 500;
+        letter-spacing: 0.2px;
+    }
+
+    .input-group .btn {
+        border-radius: 0 0.5rem 0.5rem 0;
+    }
+
+    .input-group input {
+        border-radius: 0.5rem 0 0 0.5rem;
+    }
+
+    @media (max-width: 991.98px) {
+        .card {
+            max-width: 98%;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .card {
+            max-width: 100%;
+            padding: 1rem !important;
+        }
+    }
+</style>
+
+<div class="container py-2">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card p-4">
+                <h2 class="text-center mb-4 gradient-title">{% if edit_user %}Edit{% else %}Add{% endif %} User</h2>
+
+                <form id="userForm" method="post" enctype="multipart/form-data"
+                        action="{% if edit_user %}{% url 'edit_user' edit_user.id %}{% else %}{% url 'add_user' %}{% endif %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                        <label for="role" class="form-label">Role</label>
+                        <select class="form-select" id="role" name="role" required
+                                oninvalid="this.setCustomValidity('Please select a role')"
+                                oninput="this.setCustomValidity('')">
+                            <option value="" disabled selected hidden>--Select role--</option>
+                            {% for role in roles %}
+                            <option value="{{ role.id }}" {% if edit_user and edit_user.role.id == role.id %}selected{% endif %}>{{ role.name }}</option>
+                            {% endfor %}
+                        </select>
+                        </div>
+
+                        <div class="col-md-6">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username"
+                                placeholder="Enter unique username"
+                                value="{{ edit_user.username|default:'' }}"
+                                required
+                                oninvalid="this.setCustomValidity('Please enter a username')"
+                                oninput="this.setCustomValidity('')">
+                        </div>
+                        {% if not edit_user %}
+                        <div class="col-md-6">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <input type="password"
+                                class="form-control"
+                                id="password"
+                                name="password"
+                                placeholder="Password"
+                                required
+                                minlength="8"
+                                pattern=".{8,}"
+                                oninvalid="this.setCustomValidity('Password must be at least 8 characters')"
+                                oninput="this.setCustomValidity('')">
+                            <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                            <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                        <label for="confirm-password" class="form-label">Confirm Password</label>
+                        <div class="input-group">
+                            <input type="password"
+                                class="form-control"
+                                id="confirm-password"
+                                name="confirm_password"
+                                placeholder="Confirm Password"
+                                required
+                                oninvalid="this.setCustomValidity('Password do not match')"
+                                oninput="this.setCustomValidity('')">
+                            <button type="button" class="btn btn-outline-secondary" id="toggleConfirmPassword">
+                            <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="col-md-6">
+                        <label for="first_name" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name"
+                                placeholder="Enter first name"
+                                value="{{ edit_user.first_name|default:'' }}"
+                                required
+                                oninvalid="this.setCustomValidity('Please enter first name')"
+                                oninput="this.setCustomValidity('')">
+                        </div>
+
+                        <div class="col-md-6">
+                        <label for="last_name" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name"
+                                placeholder="Enter last name"
+                                value="{{ edit_user.last_name|default:'' }}"
+                                required
+                                oninvalid="this.setCustomValidity('Please enter last name')"
+                                oninput="this.setCustomValidity('')">
+                        </div>
+
+                        <div class="col-md-6">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email"
+                                placeholder="Enter email address"
+                                value="{{ edit_user.email|default:'' }}"
+                                required
+                                oninvalid="this.setCustomValidity('Please enter a valid email')"
+                                oninput="this.setCustomValidity('')">
+                        </div>
+
+                        <div class="col-md-6">
+                        <label for="phone_number" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="phone_number" name="phone_number"
+                                placeholder="Enter phone number"
+                                value="{{ edit_user.phone_number|default:'' }}"
+                                required
+                                oninvalid="this.setCustomValidity('Please enter phone number')"
+                                oninput="this.setCustomValidity('')">
+                        </div>
+
+                        <div class="col-md-6">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="1"
+                                    placeholder="Enter address" required
+                                    oninvalid="this.setCustomValidity('Please enter address')"
+                                    oninput="this.setCustomValidity('')">{{ edit_user.address|default:'' }}</textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                        <label for="city" class="form-label">City</label>
+                        <input type="text" class="form-control" id="city" name="city" placeholder="Enter city"
+                                value="{{ edit_user.city|default:'' }}" required
+                                oninvalid="this.setCustomValidity('Please enter city')"
+                                oninput="this.setCustomValidity('')">
+                        </div>
+
+                        <div class="col-md-6">
+                        <label for="state" class="form-label">State</label>
+                        <input type="text" class="form-control" id="state" name="state" placeholder="Enter state"
+                                value="{{ edit_user.state|default:'' }}" required
+                                oninvalid="this.setCustomValidity('Please enter state')"
+                                oninput="this.setCustomValidity('')">
+                        </div>
+
+                        <div class="col-md-6">
+                        <label for="pincode" class="form-label">Pincode</label>
+                        <input type="number" class="form-control" id="pincode" name="pincode" placeholder="Enter pincode"
+                                value="{{ edit_user.pincode|default:'' }}" required
+                                oninvalid="this.setCustomValidity('Please enter pincode')"
+                                oninput="this.setCustomValidity('')">
+                        </div>
+
+                        <div class="col-md-6">
+                        <label for="is_active" class="form-label">Status</label>
+                        <select class="form-select" id="is_active" name="is_active" required
+                                oninvalid="this.setCustomValidity('Please select status')"
+                                oninput="this.setCustomValidity('')">
+                            <option value="true" {% if edit_user and edit_user.is_active %}selected{% endif %}>Active</option>
+                            <option value="false" {% if edit_user and not edit_user.is_active %}selected{% endif %}>Inactive</option>
+                        </select>
+                        </div>
+
+                        <div class="col-md-6">
+                        <label for="profile_picture" class="form-label">Profile Picture</label>
+                        <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                        {% if edit_user and edit_user.profile_picture %}
+                        <div class="mt-2">
+                            <label class="form-label">Current Profile Picture</label><br>
+                            <img src="{{ edit_user.profile_picture.url }}" alt="Profile Picture" class="img-thumbnail" style="max-height: 120px;">
+                        </div>
+                        {% endif %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn user-btn w-100 mt-4">
+                        <i class="fas fa-user-{% if edit_user %}edit{% else %}plus{% endif %} me-2"></i>
+                        {% if edit_user %}Update{% else %}Add{% endif %} User
+                    </button>
+                    </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirm-password');
+
+    document.getElementById('togglePassword')?.addEventListener('click', () => {
+        const icon = document.getElementById('eyeIcon');
+        passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+        icon.classList.toggle('fa-eye-slash');
+    });
+
+    document.getElementById('toggleConfirmPassword')?.addEventListener('click', () => {
+        const icon = document.getElementById('eyeIconConfirm');
+        confirmPasswordInput.type = confirmPasswordInput.type === 'password' ? 'text' : 'password';
+        icon.classList.toggle('fa-eye-slash');
+    });
+</script>
+
+<script>
+  const form = document.getElementById("userForm");
+  const username = document.getElementById("username");
+  const password = document.getElementById("password");
+  const confirmPassword = document.getElementById("confirm-password");
+
+  // Trim username immediately on blur
+  if (username) {
+    username.addEventListener("blur", () => {
+      username.value = username.value.trim(); // keep inner spaces
+    });
+  }
+
+  if (form && password && confirmPassword) {
+    form.addEventListener("submit", function (e) {
+      // --- Normalize values ---
+      if (username) username.value = username.value.trim();
+      password.value = password.value.trim();          // outer spaces removed
+      confirmPassword.value = confirmPassword.value.trim();
+
+      // --- Username check ---
+      if (username && username.value === "") {
+        username.setCustomValidity("Please enter a username");
+        username.reportValidity();
+        e.preventDefault();
+        return;
+      } else {
+        username.setCustomValidity("");
+      }
+
+      // --- Password length ---
+      if (password.value.length < 8) {
+        password.setCustomValidity("Password must be at least 8 characters (spaces inside allowed)");
+        password.reportValidity();
+        e.preventDefault();
+        return;
+      } else {
+        password.setCustomValidity("");
+      }
+
+      // --- Confirm password ---
+      if (password.value !== confirmPassword.value) {
+        confirmPassword.setCustomValidity("Passwords do not match");
+        confirmPassword.reportValidity();
+        e.preventDefault();
+      } else {
+        confirmPassword.setCustomValidity("");
+      }
+    });
+  }
+</script>
+
+{% endblock %}

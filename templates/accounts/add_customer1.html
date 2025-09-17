@@ -1,0 +1,490 @@
+{% extends 'company_admin/base.html' %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+    body {
+        background: linear-gradient(120deg, #fff5e6 60%, #fef2e6 100%);
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .card {
+        border-radius: 1.2rem;
+        box-shadow: 0 6px 32px rgba(96, 31, 47, 0.10);
+        width: 100%;
+        max-width: 1300px;
+        margin: 0 auto;
+        border: none;
+        background: #fff;
+    }
+
+    .form-label {
+        font-weight: bold !important;
+        color: #601F2F;
+    }
+
+    .user-btn {
+        background: linear-gradient(90deg, #ffb347 0%, #601F2F 100%);
+        color: #fff;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border: none;
+        box-shadow: 0 2px 8px rgba(255, 179, 71, 0.25);
+    }
+
+    .card-header {
+        background: linear-gradient(90deg, #ffb347 0%, #601F2F 100%);
+        color: #fff;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border: none;
+        box-shadow: 0 2px 8px rgba(255, 179, 71, 0.25);
+    }
+
+    .user-btn:hover {
+        background: linear-gradient(90deg, #601F2F 0%, #ffb347 100%);
+        transform: translateY(-1px);
+    }
+
+    .gradient-title {
+        background: linear-gradient(90deg, #601F2F 10%, #ffb347 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent;
+        font-weight: 700;
+        font-family: 'Poppins', sans-serif;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control,
+    .form-select {
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        border: 1.5px solid #e2e8f0;
+        background: #fdfdfd;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #ffb347;
+        box-shadow: 0 0 0 2px #ffb34733;
+    }
+
+    .input-group-text {
+        background: #fdfdfd;
+    }
+
+    label.form-label {
+        font-weight: 500;
+        letter-spacing: 0.2px;
+    }
+
+    .input-group .btn {
+        border-radius: 0 0.5rem 0.5rem 0;
+    }
+
+    .input-group input {
+        border-radius: 0.5rem 0 0 0.5rem;
+    }
+
+    @media (max-width: 991.98px) {
+        .card {
+            max-width: 98%;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .card {
+            max-width: 100%;
+            padding: 1rem !important;
+        }
+    }
+</style>
+
+<div class="container py-2">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card p-4">
+                <h2 class="text-center mb-4 gradient-title">
+                    {% if edit_customer %}Edit{% else %}Add{% endif %} Customer
+                </h2>
+
+                <form method="post" enctype="multipart/form-data"
+                    action="{% if edit_customer %}{% url 'edit_customer' edit_customer.id %}{% else %}{% url 'add_customer' %}{% endif %}">
+                    {% csrf_token %}
+
+                    
+
+                    <!-- ================= Shop Details ================= -->
+                    <div class="card mb-4">
+                        <div class="card-header  text-white">
+                            Shop Details
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+
+                               <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="is_gst_registered" name="is_gst_registered" value="True"
+                                            {% if edit_customer.is_gst_registered %} checked {% endif %}>
+                                        <label class="form-check-label" for="is_gst_registered">GST Registered</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4" id="gstNumberDiv">
+                                    <label for="gst_number" class="form-label">GST Number</label>
+                                    <input type="text" class="form-control" name="gst_number" id="gst_number" placeholder="Enter valid GST no"
+                                        value="{{ edit_customer.gst_number|default:'' }}">
+                                </div>
+
+                                <!-- Shop Name -->
+                                <div class="col-md-4">
+                                    <label for="shop_name" class="form-label">Shop Name</label>
+                                    <input type="text" class="form-control" name="shop_name" id="shop_name" placeholder="Enter Shop Name" value="{{ edit_customer.shop_name|default:'' }}" required>
+                                </div>
+
+                                <!-- Shop Type -->
+                                <div class="col-md-4">
+                                    <label for="shop_type" class="form-label">Shop Type</label>
+                                    <select class="form-select" name="shop_type" id="shop_type" required  oninvalid="setCustomValidity('Please select a shop type')" oninput="setCustomValidity('')">
+                                        <option value="" disabled hidden {% if not edit_customer.shop_type %} selected {% endif %}>-- Select Shop Type --</option>
+                                        <option value="NMT" {% if edit_customer.shop_type == 'NMT' %} selected{% endif %}> National Modern Trade</option>
+                                        <option value="MT" {% if edit_customer.shop_type == 'MT' %} selected{% endif %}> Modern Trade</option>
+                                        <option value="SMT" {% if edit_customer.shop_type == 'SMT' %} selected{% endif %}> Semi Modern Trade</option>
+                                        <option value="SPECIAL" {% if edit_customer.shop_type == 'SPECIAL' %} selected{% endif %}>Speciality Store</option>
+                                        <option value="GT" {% if edit_customer.shop_type == 'GT' %} selected{% endif %}> General Trade</option>
+                                    </select>
+                                </div>
+
+                                <!-- Shop Address -->
+                                <div class="col-md-8">
+                                    <label for="shop_address" class="form-label">Shop Address</label>
+                                    <textarea class="form-control" name="shop_address" id="shop_address" rows="1" placeholder="Enter Shop Address" required>{{ edit_customer.shop_address|default:'' }}</textarea>
+                                </div>
+
+                                <!-- Shop City -->
+                                <div class="col-md-4">
+                                    <label for="shop_city" class="form-label">Shop City</label>
+                                    <input type="text" class="form-control" name="shop_city" id="shop_city" placeholder="Enter Shop city" value="{{ edit_customer.shop_city|default:'' }}" required>
+                                </div>
+
+                                <!-- Shop State -->
+                                <div class="col-md-4">
+                                    <label for="shop_state" class="form-label">Shop State</label>
+                                    <input type="text" class="form-control" name="shop_state" id="shop_state" placeholder="Enter Shop State" value="{{ edit_customer.shop_state|default:'' }}" required>
+                                </div>
+
+                                <!-- Shop Pincode -->
+                                <div class="col-md-4">
+                                    <label for="shop_pincode" class="form-label">Shop Pincode</label>
+                                    <input type="text" class="form-control" name="shop_pincode" id="shop_pincode" placeholder="Enter Shop Pincode" value="{{ edit_customer.shop_pincode|default:'' }}" required>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="foot_fall_weekdays" class="form-label">Foot Fall in Weekdays</label>
+                                    <input type="number" class="form-control" name="foot_fall_weekdays" id="foot_fall_weekdays" placeholder="Enter Foot Fall in Weekdays" value="{{ edit_customer.weekday_footfall|default:'' }}" >
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="foot_fall_weekends" class="form-label">Foot Fall in Weekends</label>
+                                    <input type="number" class="form-control" name="foot_fall_weekends" id="foot_fall_weekends" placeholder="Enter Foot Fall in Weekends" value="{{ edit_customer.weekend_footfall|default:'' }}" >
+                                </div>
+
+                                
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Branch Details Section -->
+                    <div id="branchDetails" class="mt-4" style="display: none;">
+                        <h4 class="gradient-title text-center mb-3">Branch Details</h4>
+                        <div id="branchesContainer" class="row g-3"></div>
+                    </div>
+
+
+                    <!-- ================= Customer Details ================= -->
+                    <div class="card mb-4">
+                        <div class="card-header text-white">
+                            Store Incharge/Manager Details
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <!-- Assigned User -->
+                                {% if current_user.role.name == "Admin" %}
+                                <div class="col-md-4">
+                                    <label for="user" class="form-label">Assigned Salesman</label>
+                                    <select class="form-select" name="user" id="user" required>
+                                        <option value="" disabled selected hidden>-- Select Salesman --</option>
+                                        {% for user in users %}
+                                        <option value="{{ user.id }}" {% if edit_customer and edit_customer.user.id == user.id %} selected {% endif %}>{{ user.username }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {% else %}
+                                <input type="text" name="user" value="{{current_user.id}}" hidden>
+                                {% endif %}
+
+                                <!-- Customer Name -->
+                                <div class="col-md-4">
+                                    <label for="full_name" class="form-label">Store Incharge/Manager Name</label>
+                                    <input type="text" class="form-control" name="full_name" id="full_name"placeholder="Enter Full Name" value="{{ edit_customer.full_name|default:'' }}" required>
+                                </div>
+
+                                <!-- Phone Number -->
+                                <div class="col-md-4">
+                                    <label for="phone_number" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" name="phone_number" id="phone_number" placeholder="Enter phone No" value="{{ edit_customer.phone_number|default:'' }}" required>
+                                </div>
+
+                                <!-- Email -->
+                                <div class="col-md-4">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" name="email" id="email" placeholder="Enter a valid Email Address" value="{{ edit_customer.email|default:'' }}" required>
+                                </div>
+
+
+                                <!-- Discount -->
+                                <div class="col-md-4">
+                                    <label for="discount" class="form-label">Discount (%)</label>
+                                    <input type="number" step="0.01" class="form-control" name="discount" id="discount"  placeholder="Please Enter Discount Percentage" value="{{ edit_customer.discount|default:'' }}" required>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="credit_period" class="form-label">Credit Period (Days)</label>
+                                    <input type="number" class="form-control" name="credit_period" id="credit_period" placeholder="Please Enter Credit Period in Days" value="{{ edit_customer.credit_period|default:'' }}" required>
+                                </div>
+
+
+                                <!-- Status -->
+                                <div class="col-md-4">
+                                    <label for="is_active" class="form-label">Status</label>
+                                    <select class="form-select" name="is_active" id="is_active" required>
+                                        <option value="true" {% if not edit_customer or edit_customer.is_active %}
+                                            selected {% endif %}>Active</option>
+                                        <option value="false" {% if edit_customer and not edit_customer.is_active %}
+                                            selected {% endif %}>Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            Shop Images
+                        </div>
+                        <div class="card-body">
+                            <!-- Shop Images Upload -->
+                            <div class="mb-3">
+                                <label for="shop_images" class="form-label">Upload Shop Images</label>
+                                <input class="form-control" type="file" name="shop_images" id="shop_images" multiple accept="image/*" 
+                                    {% if not edit_customer %}required{% endif %}>
+                            </div>
+
+
+                            <!-- Preview Container -->
+                            <div class="row" id="shopImagesPreview"></div>
+
+                            {% if edit_customer %}
+                            <div class="mt-3">
+                                <label class="form-label">Uploaded Images</label>
+                                <div class="row" id="existingImages">
+                                    {% for image in edit_customer.shop_images.all %}
+                                    <div class="col-md-2 mb-2 position-relative" data-existing-id="{{ image.id }}">
+                                        <div class="border p-2 text-center">
+                                            <img src="{{ image.image.url }}" class="img-fluid mb-1" style="max-height: 100px;">
+                                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 remove-existing-image" style="font-size: 12px; padding: 0 4px;">×</button>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Hidden input to store removed images -->
+                    <input type="hidden" name="removed_images" id="removed_images">
+
+
+                    <!-- ================= Submit Button ================= -->
+                    <div class="col-12 mb-4">
+                        <button type="submit" class="btn user-btn w-100">
+                            <i class="fas fa-user-{% if edit_customer %}edit{% else %}plus{% endif %} me-2"></i>
+                            {% if edit_customer %} Update {% else %} Add {% endif %} Customer
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('gst_number').addEventListener('input', function () {
+    const gstin = this.value.trim();
+    if (gstin.length !== 15) return; // Only call API when GSTIN is fully typed
+
+    fetch("{% url 'gstin_details' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ gstin: gstin })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // -----------------------------
+                // 1. Fill form from Main Branch
+                // -----------------------------
+                const d = data.main_branch;
+                document.getElementById('shop_name').value = d["business_name"] || '';
+                document.getElementById('shop_address').value = `${d["address_line1"]}, ${d["address_line2"]}`.replace(/^,|,$/g, '');
+                document.getElementById('shop_city').value = d["city"] || '';
+                document.getElementById('shop_state').value = d["state"] || '';
+                document.getElementById('shop_pincode').value = d["pincode"] || '';
+
+                // -----------------------------
+                // 2. Show Branch Cards
+                // -----------------------------
+                document.getElementById("branchDetails").style.display = "block";
+                const container = document.getElementById("branchesContainer");
+                container.innerHTML = ""; // Clear previous
+
+                // ---- Main Branch Card ----
+                let mainCard = `
+                    <div class="col-md-6">
+                        <div class="card shadow-sm p-3 mb-3 border-success">
+                            <div class="card-header bg-success text-white fw-bold">🏢 Head Office</div>
+                            <div class="card-body">
+                                <p><strong>Customer Name:</strong> ${d.customer_name || ''}</p>
+                                <p><strong>Business Name:</strong> ${d.business_name || ''}</p>
+                                <p><strong>Address:</strong> ${d.address_line1}, ${d.address_line2}</p>
+                                <p><strong>City:</strong> ${d.city || ''}</p>
+                                <p><strong>District:</strong> ${d.district || ''}</p>
+                                <p><strong>State:</strong> ${d.state || ''}</p>
+                                <p><strong>Pincode:</strong> ${d.pincode || ''}</p>
+                                <p><strong>Nature of Business:</strong> ${d.nature_of_business || ''}</p>
+                            </div>
+                        </div>
+                    </div>`;
+                container.innerHTML += mainCard;
+
+                // ---- Other Branches ----
+                if (data.branches && data.branches.length > 0) {
+                    data.branches.forEach((branch, index) => {
+                        let branchCard = `
+                            <div class="col-md-6">
+                                <div class="card shadow-sm p-3 mb-3 border-primary">
+                                    <div class="card-header bg-primary text-white fw-bold">🏬 Branch ${index + 1}</div>
+                                    <div class="card-body">
+                                        <p><strong>Customer Name:</strong> ${branch.customer_name || ''}</p>
+                                        <p><strong>Business Name:</strong> ${branch.business_name || ''}</p>
+                                        <p><strong>Address:</strong> ${branch.address_line1}, ${branch.address_line2}</p>
+                                        <p><strong>City:</strong> ${branch.city || ''}</p>
+                                        <p><strong>District:</strong> ${branch.district || ''}</p>
+                                        <p><strong>State:</strong> ${branch.state || ''}</p>
+                                        <p><strong>Pincode:</strong> ${branch.pincode || ''}</p>
+                                        <p><strong>Nature of Business:</strong> ${branch.nature_of_business || ''}</p>
+                                    </div>
+                                </div>
+                            </div>`;
+                        container.innerHTML += branchCard;
+                    });
+                }
+            } else {
+                alert("GSTIN fetch failed: " + data.message);
+                document.getElementById("branchDetails").style.display = "none";
+            }
+        })
+        .catch(err => console.error("GSTIN API error:", err));
+});
+
+
+
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const gstCheckbox = document.getElementById('is_gst_registered');
+        const gstDiv = document.getElementById('gstNumberDiv');
+
+        // Initial display
+        gstDiv.style.display = gstCheckbox.checked ? 'block' : 'none';
+
+        // Toggle on change
+        gstCheckbox.addEventListener('change', function () {
+            if (gstCheckbox.checked) {
+                gstDiv.style.display = 'block';
+            } else {
+                gstDiv.style.display = 'none';
+                document.getElementById('gst_number').value = '';
+            }
+        });
+    });
+</script>
+
+<script>
+const shopImagesInput = document.getElementById('shop_images');
+let dataTransfer = new DataTransfer(); // To manage uploaded files dynamically
+
+// Handle new uploads
+shopImagesInput.addEventListener('change', function () {
+    const previewContainer = document.getElementById('shopImagesPreview');
+
+    Array.from(this.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const div = document.createElement('div');
+            div.classList.add('col-md-2', 'mb-2', 'position-relative');
+            div.innerHTML = `
+                <div class="border p-2 text-center">
+                    <img src="${e.target.result}" class="img-fluid mb-1" style="max-height: 100px;">
+                    <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 remove-image" style="font-size: 12px; padding: 0 4px;">×</button>
+                </div>
+            `;
+            previewContainer.appendChild(div);
+
+            // Add file to DataTransfer
+            dataTransfer.items.add(file);
+            shopImagesInput.files = dataTransfer.files;
+
+            // Remove image
+            div.querySelector('.remove-image').addEventListener('click', function () {
+                const fileIndex = Array.from(dataTransfer.files)
+                    .findIndex(f => f.name === file.name && f.size === file.size && f.type === file.type);
+                if (fileIndex > -1) {
+                    dataTransfer.items.remove(fileIndex);
+                    shopImagesInput.files = dataTransfer.files;
+                }
+                div.remove();
+            });
+        }
+        reader.readAsDataURL(file);
+    });
+});
+
+// Handle existing images removal
+document.querySelectorAll('.remove-existing-image').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const parentDiv = this.closest('[data-existing-id]');
+        const imageId = parentDiv.getAttribute('data-existing-id');
+        parentDiv.remove();
+
+        // Update hidden input
+        const removedInput = document.getElementById('removed_images');
+        let removedIds = removedInput.value ? removedInput.value.split(',') : [];
+        removedIds.push(imageId);
+        removedInput.value = removedIds.join(',');
+    });
+});
+
+</script>
+{% endblock %}

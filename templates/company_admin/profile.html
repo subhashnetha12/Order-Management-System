@@ -1,0 +1,72 @@
+{% extends 'company_admin/base.html' %}
+{% load static %}
+{% block content %}
+    <style>
+        :root {
+            --primary-red: #601F2F;
+            --primary-orange: #ffb347;
+            --accent-yellow: #fc3;
+            --light-orange: #fff5e6;
+            --dark-red: #4a1824;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 60px;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: var(--light-orange);
+            color: var(--primary-red);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .profile-card {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: white;
+            border: 2px solid var(--primary-orange);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .profile-card h2 {
+            margin-bottom: 20px;
+            color: var(--primary-red);
+            text-align: center;
+        }
+
+        .profile-row {
+            margin-bottom: 15px;
+        }
+
+        .label {
+            font-weight: bold;
+            color: var(--dark-red);
+        }
+
+        .value {
+            color: var(--primary-red);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="profile-card">
+        <h2>User Profile</h2>
+
+        <div class="profile-row"><span class="label">Username:</span> <span class="value">{{ current_user.username }}</span></div>
+        <div class="profile-row"><span class="label">Role:</span> <span class="value">{{ current_user.role.name }}</span></div>
+        <div class="profile-row"><span class="label">First Name:</span> <span class="value">{{ current_user.first_name }}</span></div>
+        <div class="profile-row"><span class="label">Last Name:</span> <span class="value">{{ current_user.last_name }}</span></div>
+        <div class="profile-row"><span class="label">Email:</span> <span class="value">{{ current_user.email }}</span></div>
+        <div class="profile-row"><span class="label">Phone:</span> <span class="value">{{ current_user.phone_number }}</span></div>
+        <div class="profile-row"><span class="label">Address:</span> <span class="value">{{ current_user.address }}</span></div>
+        <div class="profile-row"><span class="label">City:</span> <span class="value">{{ current_user.city }}</span></div>
+        <div class="profile-row"><span class="label">State:</span> <span class="value">{{ current_user.state }}</span></div>
+        <div class="profile-row"><span class="label">Pincode:</span> <span class="value">{{ current_user.pincode }}</span></div>
+        <div class="profile-row"><span class="label">Account Active:</span> <span class="value">{{ current_user.is_active }}</span></div>
+        <div class="profile-row"><span class="label">Joined Date:</span> <span class="value">{{ current_user.created_at|date:"d M Y H:i" }}</span></div>
+        
+    </div>
+{% endblock %}
