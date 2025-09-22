@@ -362,14 +362,7 @@
             </li>
             {% endif %}
 
-            {% if current_user.role.name == 'Admin' %}
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'salesman_visit_list' %}">
-                    <i class="fas fa-calendar-check nav-icon"></i>
-                    <span class="nav-text">Salesman Check-In /Out</span>
-                </a>
-            </li>
-            {% endif %}
+            
 
              <!-- Products -->
             {% if role_permission.category_v or role_permission.all_products_v or role_permission.daily_production_v or role_permission.inventory_v %}
@@ -449,7 +442,18 @@
                     {% if role_permission.c_reports_v %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'salesman_reports' %}">Salesman Report</a></li>
                     {% endif %}
+
+                   
                 </ul>
+            </li>
+            {% endif %}
+
+            {% if current_user.role.name == 'Admin' %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'salesman_visit_list' %}">
+                    <i class="fas fa-calendar-check nav-icon"></i>
+                    <span class="nav-text">Salesman Check-In /Out</span>
+                </a>
             </li>
             {% endif %}
 

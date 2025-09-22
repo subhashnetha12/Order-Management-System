@@ -241,7 +241,6 @@ table.dataTable tbody tr:hover {
                     <th>Full Name</th>
                     <th>Shop Name</th>
                     <th>Phone Number</th>
-                    <th>Email</th>
                     <th>Salesman</th>
                     <th>Actions</th>
                 </tr>
@@ -251,11 +250,10 @@ table.dataTable tbody tr:hover {
                 <tr>
                     <td>{{ forloop.counter }}</td>
                     <td>{{ customer.created_at|date:'d-m-Y' }}</td>
-                    <td>{{ customer.full_name }}</td>
-                    <td>{{ customer.shop_name }}</td>
-                    <td>{{ customer.phone_number }}</td>
-                    <td>{{ customer.email }}</td>
-                    <td>{{ customer.user.username }}</td>
+                    <td>{{ customer.full_name|default:"N/A" }}</td>
+                    <td>{{ customer.shop_name|default:"N/A"  }}</td>
+                    <td>{{ customer.phone_number|default:"N/A"  }}</td>
+                    <td>{{ customer.user.username|default:"N/A"  }}</td>
                     <td>
                         <a href="{% url 'view_customer' customer.id %}" class="btn-icon text-decoration-none" title="View">
                             <i class="fas fa-eye fa-lg text-primary px-2"></i>

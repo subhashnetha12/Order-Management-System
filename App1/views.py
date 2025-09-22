@@ -704,7 +704,7 @@ def add_customer(request):
     if not current_user:
         return redirect('login')
 
-    users = User.objects.exclude(role__name__iexact="Admin")
+    users = User.objects.filter(role__name__iexact="Salesman")
     context = {
         "current_user": current_user,
         "users": users,
@@ -922,7 +922,7 @@ def edit_customer(request, id):
     if not current_user:
         return redirect('login')
     customer = get_object_or_404(Customer, id=id)
-    users = User.objects.all()
+    users = User.objects.filter(role__name__iexact="Salesman")
 
     context = {
         'current_user':current_user,
@@ -2308,53 +2308,6 @@ def salesman_visit_list(request):
 
     return render(request, "accounts/salesman_active_check.html", context)
 
-
-def checkin_checkout_list11(request):
-    current_user, role_permission = get_logged_in_user(request)
-    if not current_user:
-        return redirect("login")
-
-    if request.method == "POST":
-        action = request.POST.get("action")
-
-        if action == "checkin":
-            customer_id = request.POST.get("customer")
-            customer = Customer.objects.get(id=customer_id) if customer_id else None
-
-            # Prevent multiple active visits
-            SalesmanVisit.objects.filter(salesman=current_user, is_active=True).update(
-                is_active=False, check_out_time=timezone.now()
-            )
-
-            SalesmanVisit.objects.create(
-                salesman=current_user,
-                customer=customer,
-            )
-
-        elif action == "checkout":
-            visit = SalesmanVisit.objects.filter(salesman=current_user, is_active=True).last()
-            if visit:
-                description = request.POST.get("visit_description", "")
-                visit.check_out_time = timezone.now()
-                visit.visit_description = description
-                visit.is_active = False
-                visit.save()
-
-        return redirect("checkin_checkout_list")
-
-    # check if salesman has an active visit
-    active_visit = SalesmanVisit.objects.filter(salesman=current_user, is_active=True).last()
-
-    visits = SalesmanVisit.objects.filter(salesman=current_user).order_by("-check_in_time")
-    customers = Customer.objects.all()
-
-    return render(request, "accounts/checkin_checkout1.html", {
-        "visits": visits,
-        "customers": customers,
-        "current_user": current_user,
-        "role_permission": role_permission,
-        "is_active": bool(active_visit),  # ✅ pass active state
-    })
 
 
 
