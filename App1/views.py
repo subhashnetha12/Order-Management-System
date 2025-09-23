@@ -715,8 +715,8 @@ def add_customer(request):
         # --- Collect form data ---
         user_id = request.POST['user']
         full_name = request.POST['full_name']
-        email = request.POST['email']
-        phone_number = request.POST['phone_number']
+        email = request.POST['email'] or None
+        phone_number = request.POST['phone_number'] or None
         credit_period = request.POST.get('credit_period')
         shop_name = request.POST['shop_name']
         shop_type = request.POST.get('shop_type')
@@ -765,7 +765,8 @@ def add_customer(request):
             weekday_footfall=weekday_footfall,
             weekend_footfall=weekend_footfall,
             latitude=latitude,
-            longitude=longitude 
+            longitude=longitude,
+            nature_of_business=nature_of_business
         )
 
         # --- Save shop images ---
