@@ -528,7 +528,7 @@ function addItemToTable(item) {
         <td class="mrp">${item.mrp.toFixed(2)}</td>
         <td>
             <input type="number" class="form-control qty" style="width:70px;"
-                   value="${item.quantity}" min="1" max="${item.availableQty}" >
+                   value="${item.quantity}" min="1"  >
         </td>
         <td class="subtotal">${item.subtotal.toFixed(2)}</td>
         <td>
@@ -589,7 +589,6 @@ document.getElementById("is_free_sample").addEventListener("change", function ()
 function recalcRow(row, isFreeSample = document.getElementById("is_free_sample").checked) {
     const itemId = row.dataset.id;
     const weight = row.dataset.weight;
-    const availableQty = parseFloat(row.dataset.availableQty) || 0;
     const hiddenInput = document.querySelector(`.item-hidden[data-item-id="${itemId}-${weight}"]`);
 
     let price = parseFloat(row.querySelector(".mrp").textContent) || 0;
@@ -597,12 +596,8 @@ function recalcRow(row, isFreeSample = document.getElementById("is_free_sample")
     let discountPerc = parseFloat(row.querySelector(".discount").value) || 0;
     let gstPerc = parseFloat(row.querySelector(".gst").textContent) || 0;
 
-    // ✅ Stock validation
-    if (qty > availableQty) {
-        alert(`Only ${availableQty} packets available in stock for this product.`);
-        qty = availableQty;
-        row.querySelector(".qty").value = availableQty;
-    } else if (qty < 1) {
+    // ✅ Ensure qty at least 1
+    if (qty < 1) {
         qty = 1;
         row.querySelector(".qty").value = 1;
     }
@@ -639,6 +634,7 @@ function recalcRow(row, isFreeSample = document.getElementById("is_free_sample")
 
     updateSummary();
 }
+
 
 
 function removeItem(id, button) {

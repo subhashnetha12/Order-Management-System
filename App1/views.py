@@ -1453,6 +1453,17 @@ def get_customer_details(request, customer_id):
             'shop_state': '',
             'shop_pincode': '',
         })
+    
+from django.db.models import Min
+
+def product_batches(request, product_id):
+    batches = (
+        DailyProduction.objects.filter(product_id=product_id, stock_in__gt=0)
+        .values("weight_per_packet")
+        .annotate(first_batch_id=Min("id"))  
+        .order_by("weight_per_packet")
+    )
+    return JsonResponse(list(batches), safe=False)    
 
 
 def fifo_batch(request, product_id, weight):
@@ -1599,9 +1610,8 @@ def add_order(request):
                     order_type=order_type,
                 )
 
-                # 2️⃣ Process each item
+                # 2️⃣ Process each item (NO FIFO deduction)
                 for item_data in items:
-                    # Expected format: product_id,weight,quantity,price,sub_total,discount_percentage,discount_amount,taxable_amount,gst_percentage,gst_amount,total
                     try:
                         product_id, weight, quantity, price, sub_total, discount_perc, discount_amt, taxable_amt, gst_perc, gst_amt, total = item_data.split(',')
                     except ValueError:
@@ -1622,43 +1632,21 @@ def add_order(request):
                         gst_amt = safe_decimal(gst_amt)
                         total = safe_decimal(total)
 
-                    # 2a️⃣ Allocate stock using FIFO
-                    remaining_qty = quantity
-                    batches = DailyProduction.objects.filter(product=product, current_stock__gt=0).order_by('expiry_date', 'id')
-
-                    for batch in batches:
-                        if remaining_qty <= 0:
-                            break
-
-                        use_qty = min(remaining_qty, batch.current_stock)
-                        batch.stock_out += use_qty
-                        batch.save()
-
-                        # 2b️⃣ Create OrderItem
-                        OrderItem.objects.create(
-                            order=order,
-                            product=product,
-                            weight=weight,
-                            quantity=use_qty,
-                            price=price,
-                            sub_total=(price * use_qty),
-                            discount_percentage=discount_perc,
-                            discount_amount=(price * use_qty * discount_perc / 100),
-                            taxable_amount=(price * use_qty - (price * use_qty * discount_perc / 100)),
-                            gst_percentage=gst_perc,
-                            gst_amount=((price * use_qty - (price * use_qty * discount_perc / 100)) * gst_perc / 100),
-                            total=((price * use_qty - (price * use_qty * discount_perc / 100)) * (1 + gst_perc / 100))
-                        )
-
-                        # Update inventory
-                        inventory, _ = Inventory.objects.get_or_create(product=product)
-                        inventory.stock_out += use_qty
-                        inventory.update_stock()
-
-                        remaining_qty -= use_qty
-
-                    if remaining_qty > 0:
-                        raise ValueError(f"Insufficient stock for {product.name}")
+                    # ✅ Directly create OrderItem (no stock/batch updates)
+                    OrderItem.objects.create(
+                        order=order,
+                        product=product,
+                        weight=weight,
+                        quantity=quantity,
+                        price=price,
+                        sub_total=sub_total,
+                        discount_percentage=discount_perc,
+                        discount_amount=discount_amt,
+                        taxable_amount=taxable_amt,
+                        gst_percentage=gst_perc,
+                        gst_amount=gst_amt,
+                        total=total
+                    )
 
                 # 3️⃣ Payment Transaction
                 if not is_free_sample and total_paid > 0:
@@ -1697,6 +1685,7 @@ def add_order(request):
         'role_permission': role_permission,
         'preselected_customer_id': preselected_customer_id,
     })
+
 
 
 def delete_order(request, order_id):
@@ -1762,21 +1751,56 @@ def fifo_batch1(request, product_id, weight):
     })
 
 
+@transaction.atomic
 def generate_invoice(request, order_id):
     order = get_object_or_404(Order, id=order_id)
 
-    # Check if invoice already exists
+    # ✅ Create or fetch invoice
     invoice, created = Invoice.objects.get_or_create(
         order=order,
         defaults={'created_at': timezone.now()}
     )
 
-    if created:  # Only generate number if new
+    if created:
         invoice.invoice_number = f"INV{invoice.id:03d}-ORD{order.id}"
         invoice.save(update_fields=['invoice_number'])
 
-    # Redirect to view receipt (or your invoice view)
+        # ✅ FIFO deduction (increase stock_out, not decrease stock_in)
+        for item in order.items.all():
+            required_qty = item.quantity
+
+            fifo_batches = (
+                DailyProduction.objects.filter(
+                    product=item.product,
+                    weight_per_packet=item.weight,
+                    current_stock__gt=0
+                )
+                .order_by("manufactured_date", "id")  # FIFO order
+            )
+
+            for batch in fifo_batches:
+                if required_qty <= 0:
+                    break
+
+                available = batch.current_stock
+                deduction = min(required_qty, available)
+
+                # Increase stock_out
+                batch.stock_out += deduction
+                batch.save(update_fields=["stock_out", "current_stock"])
+
+                required_qty -= deduction
+
+            if required_qty > 0:
+                raise ValueError(
+                    f"Not enough stock for product {item.product.name} "
+                    f"(needed {item.quantity}, missing {required_qty})"
+                )
+
+    # ✅ Redirect to invoice/receipt page
     return redirect('view_receipt', order_id=order.id)
+
+
 
 def pay_remaining_amount(request, order_id):
     current_user, role_permission = get_logged_in_user(request)
@@ -2188,16 +2212,7 @@ def salesman_report_view(request, salesman_id):
     }
     return render(request, "company_admin/salesman_report_view.html", context)
 
-from django.db.models import Min
 
-def product_batches(request, product_id):
-    batches = (
-        DailyProduction.objects.filter(product_id=product_id, stock_in__gt=0)
-        .values("weight_per_packet")
-        .annotate(first_batch_id=Min("id"))  
-        .order_by("weight_per_packet")
-    )
-    return JsonResponse(list(batches), safe=False)
 
 # your existing session helper
 def get_address_from_latlng(lat, lng):

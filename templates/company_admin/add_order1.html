@@ -1,5 +1,3 @@
-
-
 {% extends 'company_admin/base.html' %}
 {% block content %}
 
@@ -246,7 +244,9 @@
                                 <select class="form-select" name="customer" id="customerSelect" required>
                                     <option value="">Select the customer</option>
                                     {% for customer in customers %}
-                                    <option value="{{ customer.id }}">{{ customer.full_name }}-({{ customer.shop_name }})</option>
+                                        <option value="{{ customer.id }}" {% if preselected_customer_id == customer.id %}selected{% endif %}>
+                                            {{ customer.full_name }} - ({{ customer.shop_name }})
+                                        </option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -257,7 +257,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="orderType" class="form-label">Order Type</label>
+                                <label for="orderType" class="form-label">Order Source</label>
                                 <select class="form-select" id="orderType" name="order_type" required>
                                     <option value="">Select order type</option>
                                     <option value="telephone">Telephone</option>
@@ -275,6 +275,11 @@
                             <div class="mb-2 d-flex justify-content-between">
                                 <label class="form-label fw-bold me-2">City:</label>
                                 <p id="shopCity" class="form-control-plaintext mb-0">—</p>
+                            </div>
+
+                            <div class="mb-2 d-flex justify-content-between">
+                                <label class="form-label fw-bold me-2">District:</label>
+                                <p id="shopDistrict" class="form-control-plaintext mb-0">—</p>
                             </div>
 
                             <div class="mb-2 d-flex justify-content-between">
@@ -372,54 +377,60 @@ document.addEventListener("DOMContentLoaded", function () {
     const weightSection = document.getElementById("weightSection");
     const weightSelect = document.getElementById("weightSelect");
 
-    // When customer changes → fetch discount
-    document.getElementById("customerSelect").addEventListener("change", function () {
-        const customerId = this.value;
+    const customerSelect = document.getElementById("customerSelect");
 
-        if (customerId) {
-            fetch(`/get-customer-discount/${customerId}/`)
-                .then(res => res.json())
-                .then(data => {
-                    customerDiscount = parseFloat(data.discount || 0);
-                    document.getElementById("flat_discount").textContent = customerDiscount.toFixed(2);
-                    document.getElementById("discountPercentage").value = customerDiscount;
+    // safeguard if element not found
+    if (!customerSelect) return console.error("❌ customerSelect not found!");
 
-                    // Update shop details
-                    document.getElementById("shopAddress").textContent = data.shop_address || "—";
-                    document.getElementById("shopCity").textContent = data.shop_city || "—";
-                    document.getElementById("shopState").textContent = data.shop_state || "—";
-                    document.getElementById("shopPincode").textContent = data.shop_pincode || "—";
+    // ✅ Fetch customer details
+    function fetchCustomerDetails(customerId) {
+        if (!customerId) return console.warn("⚠️ No customerId provided");
 
-                    // Apply discount to all rows
-                    document.querySelectorAll("#itemsTableBody tr").forEach(row => {
-                        row.querySelector(".discount").value = customerDiscount;
+        console.log("📡 Fetching details for customer:", customerId);
+
+        fetch(`/get-customer-details/${customerId}/`)
+            .then(res => res.json())
+            .then(data => {
+                console.log("✅ Received data:", data);
+
+                const customerDiscount = parseFloat(data.discount || 0);
+                document.getElementById("flat_discount").textContent = customerDiscount.toFixed(2);
+                document.getElementById("discountPercentage").value = customerDiscount;
+
+                // Update shop details
+                document.getElementById("shopAddress").textContent = data.shop_address || "—";
+                document.getElementById("shopCity").textContent = data.shop_city || "—";
+                document.getElementById("shopDistrict").textContent = data.shop_district || "—";
+                document.getElementById("shopState").textContent = data.shop_state || "—";
+                document.getElementById("shopPincode").textContent = data.shop_pincode || "—";
+
+                // Apply discount to all rows
+                document.querySelectorAll("#itemsTableBody tr").forEach(row => {
+                    const discountInput = row.querySelector(".discount");
+                    if (discountInput) {
+                        discountInput.value = customerDiscount;
                         recalcRow(row);
-                    });
-
-                    updateSummary();
+                    }
                 });
-        } else {
-            customerDiscount = 0;
-            document.getElementById("flat_discount").textContent = "0";
-            document.getElementById("discountPercentage").value = "0";
 
-            // Reset shop details
-            document.getElementById("shopAddress").textContent = "—";
-            document.getElementById("shopCity").textContent = "—";
-            document.getElementById("shopState").textContent = "—";
-            document.getElementById("shopPincode").textContent = "—";
+                updateSummary();
+            })
+            .catch(err => console.error("❌ Fetch failed:", err));
+    }
 
-            // Reset all rows discount
-            document.querySelectorAll("#itemsTableBody tr").forEach(row => {
-                row.querySelector(".discount").value = 0;
-                recalcRow(row);
-            });
-
-            updateSummary();
-        }
+    // ✅ Manual selection
+    customerSelect.addEventListener("change", function () {
+        fetchCustomerDetails(this.value);
     });
 
-    // Step 1: when product selected → fetch weights
+    // ✅ Auto-fetch preselected on render
+    if (customerSelect.value) {
+        console.log("🔎 Preselected value found:", customerSelect.value);
+        fetchCustomerDetails(customerSelect.value);
+    }
+
+
+    // Step 1: when product selected
     itemSelect.addEventListener("change", function () {
         const productId = this.value;
         weightSelect.innerHTML = `<option value="">Choose weight</option>`;
@@ -434,12 +445,14 @@ document.addEventListener("DOMContentLoaded", function () {
                     alert("No batches available for this product.");
                     return;
                 }
+
                 data.forEach(batch => {
                     let opt = document.createElement("option");
                     opt.value = batch.weight_per_packet;
                     opt.textContent = `${batch.weight_per_packet} g`;
                     weightSelect.appendChild(opt);
                 });
+
                 weightSection.style.display = "block";
             });
     });
@@ -459,47 +472,27 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
                 const productName = itemSelect.options[itemSelect.selectedIndex].dataset.name;
-                const totalRequestedQty = 1; // default
-                let remainingQty = totalRequestedQty;
-                const itemsToAdd = [];
 
-                // Distribute across batches (FIFO)
-                for (let batch of data.batches) {
-                    if (remainingQty <= 0) break;
-                    const batchQty = Math.min(batch.available_qty, remainingQty);
+                const item = {
+                    id: productId,
+                    weight: weight,
+                    name: `${productName} (${weight} g)`,
+                    mrp: parseFloat(data.sale_price),
+                    quantity: 1,
+                    gstpercentage: parseFloat(data.gstpercentage),
+                    availableQty: data.total_quantity,
+                    discountPerc: customerDiscount // ⬅️ apply customer discount immediately
+                };
 
-                    itemsToAdd.push({
-                        id: productId,
-                        batch_id: batch.id,
-                        batch_number: batch.batch_number,
-                        weight: weight,
-                        name: `${productName} (${weight} g)`,
-                        mrp: parseFloat(batch.sale_price),
-                        quantity: batchQty,
-                        gstpercentage: parseFloat(data.gstpercentage),
-                        availableQty: batch.available_qty,
-                        discountPerc: customerDiscount
-                    });
+                item.subtotal = item.mrp * item.quantity;
 
-                    remainingQty -= batchQty;
-                }
+                item.discountAmt = (item.subtotal * item.discountPerc) / 100;
+                item.taxableAmt = item.subtotal - item.discountAmt;
+                item.taxAmount = (item.taxableAmt * item.gstpercentage) / 100;
+                item.total = item.taxableAmt + item.taxAmount;
 
-                if (remainingQty > 0) {
-                    alert("Not enough stock available for this product.");
-                    return;
-                }
+                addItemToTable(item);
 
-                itemsToAdd.forEach(item => {
-                    item.subtotal = item.mrp * item.quantity;
-                    item.discountAmt = (item.subtotal * item.discountPerc) / 100;
-                    item.taxableAmt = item.subtotal - item.discountAmt;
-                    item.taxAmount = (item.taxableAmt * item.gstpercentage) / 100;
-                    item.total = item.taxableAmt + item.taxAmount;
-
-                    addItemToTable(item);
-                });
-
-                // reset selects
                 this.value = "";
                 itemSelect.value = "";
                 weightSection.style.display = "none";
@@ -514,93 +507,99 @@ document.addEventListener("DOMContentLoaded", function () {
         updateSummary();
         toggleNoDataMessage();
     });
-
-    // Free sample checkbox
-    document.getElementById("is_free_sample").addEventListener("change", function () {
-        const isFreeSample = this.checked;
-
-        document.querySelectorAll("#itemsTableBody tr").forEach(row => {
-            if (isFreeSample) {
-                row.querySelector(".discount").value = 0;
-                row.querySelector(".gst").textContent = "0";
-            } else {
-                const originalGST = row.dataset.gst || 0;
-                row.querySelector(".gst").textContent = originalGST;
-            }
-            recalcRow(row, isFreeSample);
-        });
-
-        updateSummary();
-    });
 });
 
-// Add item row
 function addItemToTable(item) {
     const tbody = document.getElementById('itemsTableBody');
 
-    // Use batch id to allow same product multiple batches
-    if (document.querySelector(`.item-hidden[data-item-id="${item.id}-${item.weight}-${item.batch_id}"]`)) {
-        alert("This batch is already added.");
+    if (document.querySelector(`.item-hidden[data-item-id="${item.id}-${item.weight}"]`)) {
+        alert("Item already added.");
         return;
     }
 
     const row = document.createElement('tr');
     row.dataset.id = item.id;
     row.dataset.weight = item.weight;
-    row.dataset.batchId = item.batch_id;
     row.dataset.availableQty = item.availableQty;
-    row.dataset.gst = item.gstpercentage;
 
     row.innerHTML = `
         <td>${itemCounter}</td>
-        <td>${item.name} <br><small>Batch: ${item.batch_number}</small></td>
+        <td>${item.name}</td>
         <td class="mrp">${item.mrp.toFixed(2)}</td>
-        <td><input type="number" class="form-control qty" style="width:70px;" value="${item.quantity}" min="1" max="${item.availableQty}"></td>
+        <td>
+            <input type="number" class="form-control qty" style="width:70px;"
+                   value="${item.quantity}" min="1" max="${item.availableQty}" >
+        </td>
         <td class="subtotal">${item.subtotal.toFixed(2)}</td>
-        <td><input type="number" class="form-control discount" style="width:70px;" value="${item.discountPerc}" readonly></td>
+        <td>
+            <input type="number" class="form-control discount" style="width:70px;"
+                   value="${item.discountPerc}" readonly>
+        </td>
         <td class="discountAmt">${item.discountAmt.toFixed(2)}</td>
         <td class="taxableAmt">${item.taxableAmt.toFixed(2)}</td>
         <td class="gst">${item.gstpercentage.toFixed(2)}</td>
         <td class="itemTaxAmount">${item.taxAmount.toFixed(2)}</td>
         <td class="itemTotal">${item.total.toFixed(2)}</td>
-        <td><button type="button" class="btn btn-danger btn-sm" onclick="removeItem('${item.id}-${item.weight}-${item.batch_id}', this)">Remove</button></td>
+        <td><button type="button" class="btn btn-danger btn-sm" onclick="removeItem('${item.id}-${item.weight}', this)">Remove</button></td>
     `;
     tbody.appendChild(row);
 
-    // Hidden input
+    // ✅ Hidden input
     const hiddenInput = document.createElement('input');
     hiddenInput.type = 'hidden';
     hiddenInput.name = 'items[]';
-    hiddenInput.value = `${item.id},${item.weight},${item.batch_id},${item.batch_number},${item.quantity},${item.mrp.toFixed(2)},${item.subtotal.toFixed(2)},${item.discountPerc},${item.discountAmt.toFixed(2)},${item.taxableAmt.toFixed(2)},${item.gstpercentage.toFixed(2)},${item.taxAmount.toFixed(2)},${item.total.toFixed(2)}`;
+    hiddenInput.value = `${item.id},${item.weight},${item.quantity},${item.mrp.toFixed(2)},${item.subtotal.toFixed(2)},${item.discountPerc},${item.discountAmt.toFixed(2)},${item.taxableAmt.toFixed(2)},${item.gstpercentage.toFixed(2)},${item.taxAmount.toFixed(2)},${item.total.toFixed(2)}`;
     hiddenInput.classList.add("item-hidden");
-    hiddenInput.dataset.itemId = `${item.id}-${item.weight}-${item.batch_id}`;
+    hiddenInput.dataset.itemId = `${item.id}-${item.weight}`;
     document.getElementById('saleOrderForm').appendChild(hiddenInput);
 
     itemCounter++;
     updateSummary();
     toggleNoDataMessage();
 
-    // Qty input listener
+    // qty & discount change
     const qtyInput = row.querySelector('.qty');
+    const discountInput = row.querySelector('.discount');
     qtyInput.addEventListener('input', () => recalcRow(row));
+    discountInput.addEventListener('input', () => recalcRow(row));
 }
 
-// Recalculate row totals
+
+document.getElementById("is_free_sample").addEventListener("change", function () {
+    const isFreeSample = this.checked;
+
+    document.querySelectorAll("#itemsTableBody tr").forEach(row => {
+        // if free sample, reset discount input and gst cell also
+        if (isFreeSample) {
+            row.querySelector(".discount").value = 0;  // reset discount input
+            row.querySelector(".gst").textContent = "0"; // reset GST % display
+        } else {
+            // you may reload original gst from dataset if you stored it
+            const originalGST = row.dataset.originalGst || row.dataset.gst || 0;
+            row.querySelector(".gst").textContent = originalGST;
+        }
+
+        recalcRow(row, isFreeSample);
+    });
+
+    updateSummary();
+});
+
+
 function recalcRow(row, isFreeSample = document.getElementById("is_free_sample").checked) {
     const itemId = row.dataset.id;
     const weight = row.dataset.weight;
-    const batchId = row.dataset.batchId;
     const availableQty = parseFloat(row.dataset.availableQty) || 0;
-    const hiddenInput = document.querySelector(`.item-hidden[data-item-id="${itemId}-${weight}-${batchId}"]`);
+    const hiddenInput = document.querySelector(`.item-hidden[data-item-id="${itemId}-${weight}"]`);
 
     let price = parseFloat(row.querySelector(".mrp").textContent) || 0;
     let qty = parseFloat(row.querySelector(".qty").value) || 0;
     let discountPerc = parseFloat(row.querySelector(".discount").value) || 0;
     let gstPerc = parseFloat(row.querySelector(".gst").textContent) || 0;
 
-    // Stock validation
+    // ✅ Stock validation
     if (qty > availableQty) {
-        alert(`Only ${availableQty} packets available in stock for this batch.`);
+        alert(`Only ${availableQty} packets available in stock for this product.`);
         qty = availableQty;
         row.querySelector(".qty").value = availableQty;
     } else if (qty < 1) {
@@ -614,9 +613,16 @@ function recalcRow(row, isFreeSample = document.getElementById("is_free_sample")
     let taxAmt = (taxableAmt * gstPerc) / 100;
     let total = taxableAmt + taxAmt;
 
-    // Free sample override
+    // ✅ Override if Free Sample
     if (isFreeSample) {
-        subtotal = discountAmt = taxableAmt = taxAmt = total = 0;
+        discountPerc = 0;
+        gstPerc = 0;
+        subtotal = 0;
+        discountAmt = 0;
+        taxableAmt = 0;
+        taxAmt = 0;
+        total = 0;
+
         row.querySelector(".discount").value = 0;
         row.querySelector(".gst").textContent = "0";
     }
@@ -629,15 +635,16 @@ function recalcRow(row, isFreeSample = document.getElementById("is_free_sample")
     row.querySelector(".itemTotal").textContent = total.toFixed(2);
 
     // Update hidden input
-    hiddenInput.value = `${itemId},${weight},${batchId},${row.querySelector("td:nth-child(2) small").textContent.replace("Batch: ","")},${qty},${price.toFixed(2)},${subtotal.toFixed(2)},${discountPerc},${discountAmt.toFixed(2)},${taxableAmt.toFixed(2)},${gstPerc.toFixed(2)},${taxAmt.toFixed(2)},${total.toFixed(2)}`;
+    hiddenInput.value = `${itemId},${weight},${qty},${price.toFixed(2)},${subtotal.toFixed(2)},${discountPerc},${discountAmt.toFixed(2)},${taxableAmt.toFixed(2)},${gstPerc.toFixed(2)},${taxAmt.toFixed(2)},${total.toFixed(2)}`;
 
     updateSummary();
 }
 
-// Remove row
+
 function removeItem(id, button) {
     const row = button.closest('tr');
     row.remove();
+
     const hiddenInput = document.querySelector(`.item-hidden[data-item-id="${id}"]`);
     if (hiddenInput) hiddenInput.remove();
 
@@ -647,13 +654,12 @@ function removeItem(id, button) {
 </script>
 
 
-
 <script>
 function updateSummary() {
     let subtotal = 0;        // sum of all item subtotals
     let totalDiscount = 0;   // sum of item-level discount amounts
     let taxableAmt = 0;      // subtotal - item-level discount
-    let totalTax = 0;        // sum of item taxes
+    let totalTax = 0;        // sum of item taxes                                                                                                                                                                                                                                                                                                                                            
     let totalAmount = 0;     // taxable + tax
     let grandTotal = 0;      // final payable after customer-level discount
 
@@ -666,7 +672,7 @@ function updateSummary() {
     document.querySelectorAll('.discountAmt').forEach(cell => {
         totalDiscount += parseFloat(cell.innerText) || 0;
     });
-
+                                                                   
     // 3️⃣ Taxable Amount (Subtotal - item discount)
     document.querySelectorAll('.taxableAmt').forEach(cell => {
         taxableAmt += parseFloat(cell.innerText) || 0;
@@ -675,8 +681,8 @@ function updateSummary() {
     // 4️⃣ Tax Amount
     document.querySelectorAll('.itemTaxAmount').forEach(cell => {
         totalTax += parseFloat(cell.innerText) || 0;
-    });
-
+    });      
+                                                                                                       
     // 5️⃣ Total Amount before customer discount
     totalAmount = taxableAmt + totalTax;
 
