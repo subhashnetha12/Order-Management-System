@@ -229,29 +229,90 @@
         </button>
     </div>
 
-    <div class="row g-4">
+    
+
+    <div class="row g-4 mt-2">
+        <!-- Shop Info Card -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white fw-bold">
+                    <i class="fas fa-info-circle me-2"></i>Shop Info
+                </div>
+                <div class="card-body">
+                    <div class="info-item"><span class="info-label">GST Registered:</span> <span class="info-value">{% if customer.is_gst_registered %}Yes{% else %}No{% endif %}</span></div>
+                    {% if customer.is_gst_registered %}
+                    <div class="info-item"><span class="info-label">GST Number:</span> <span class="info-value">{{ customer.gst_number|default:"N/A" }}</span></div>
+                    {% endif %}
+                    <div class="info-item"><span class="info-label">Shop Type:</span> <span class="info-value">{{ customer.get_shop_type_display|default:"N/A" }}</span></div>
+                    <div class="info-item"><span class="info-label">Onboarded By:</span> <span class="info-value">{{ customer.user.username|default:"N/A" }}</span></div>
+                    <div class="info-item"><span class="info-label">Onboarded On:</span> <span class="info-value">{{ customer.created_at|date:'d M Y, H:i'|default:"N/A" }}</span></div>
+                    <div class="info-item"><span class="info-label">Credit Period (Days):</span> <span class="info-value">{{ customer.credit_period|default:"N/A" }}</span></div>
+                    <div class="info-item"><span class="info-label">Discount (%):</span> <span class="info-value">{{ customer.discount|default:"N/A" }}</span></div>
+                    <div class="info-item"><span class="info-label">Footfall (Weekdays):</span> <span class="info-value">{{ customer.weekday_footfall|default:"N/A" }}</span></div>
+                    <div class="info-item"><span class="info-label">Footfall (Weekends):</span> <span class="info-value">{{ customer.weekend_footfall|default:"N/A" }}</span></div>
+                </div>
+            </div>
+        </div>
+        <!-- Head Office Card -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white fw-bold">
+                    <i class="fas fa-building me-2"></i>Head Office
+                </div>
+                <div class="card-body">
+                    <div class="info-item"><span class="info-label">Customer Name:</span> <span class="info-value">{{ customer.customer_name }}</span></div>
+                    <div class="info-item"><span class="info-label">Shop Name:</span> <span class="info-value">{{ customer.shop_name }}</span></div>
+                    <div class="info-item"><span class="info-label">Address:</span> <span class="info-value">{{ customer.shop_address_line1 }}</span></div>
+                    <div class="info-item"><span class="info-label">City:</span> <span class="info-value">{{ customer.shop_city }}</span></div>
+                    <div class="info-item"><span class="info-label">District:</span> <span class="info-value">{{ customer.shop_district }}</span></div>
+                    <div class="info-item"><span class="info-label">State:</span> <span class="info-value">{{ customer.shop_state }}</span></div>
+                    <div class="info-item"><span class="info-label">Pincode:</span> <span class="info-value">{{ customer.shop_pincode }}</span></div>
+                    <div class="info-item"><span class="info-label">Nature of Business:</span> <span class="info-value">{{ customer.nature_of_business }}</span></div>
+                </div>
+            </div>
+        </div>
+        <!-- Branch Cards -->
+        {% for branch in branches %}
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white fw-bold">
+                    <i class="fas fa-code-branch me-2"></i>Branch {{ forloop.counter }}
+                </div>
+                <div class="card-body">
+                    <div class="info-item"><span class="info-label">Customer Name:</span> <span class="info-value">{{ branch.customer_name }}</span></div>
+                    <div class="info-item"><span class="info-label">Shop Name:</span> <span class="info-value">{{ branch.business_name }}</span></div>
+                    <div class="info-item"><span class="info-label">Address Line 1:</span> <span class="info-value">{{ branch.address_line1 }}</span></div>
+                    <div class="info-item"><span class="info-label">Address Line 2:</span> <span class="info-value">{{ branch.address_line2 }}</span></div>
+                    <div class="info-item"><span class="info-label">City:</span> <span class="info-value">{{ branch.city }}</span></div>
+                    <div class="info-item"><span class="info-label">District:</span> <span class="info-value">{{ branch.district }}</span></div>
+                    <div class="info-item"><span class="info-label">State:</span> <span class="info-value">{{ branch.state }}</span></div>
+                    <div class="info-item"><span class="info-label">Pincode:</span> <span class="info-value">{{ branch.pincode }}</span></div>
+                    <div class="info-item"><span class="info-label">Nature of Business:</span> <span class="info-value">{{ branch.nature_of_business }}</span></div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="row g-4">
 
         <div class="col-lg-4 col-md-6 col-sm-12 d-flex">
             <div class="card mb-4 flex-grow-1">
-                <div class="card-header"><i class="fas fa-id-card me-2"></i>Personal Information</div>
+                <div class="card-header"><i class="fas fa-id-card me-2"></i>Store Incharge Information</div>
                 <div class="card-body">
                     <div class="info-item">
-                        <div class="info-label">Full Name</div>
-                        <div class="info-value"><strong>{{ customer.full_name }}</strong></div>
+                        <div class="info-label">Full Name:</div>
+                        <div class="info-value"><strong>{{ customer.full_name|default:"N/A" }}</strong></div>
                     </div>
-                    
                     <div class="info-item">
-                        <div class="info-label">Email</div>
-                        <div class="info-value">{{ customer.email }}</div>
+                        <div class="info-label">Email:</div>
+                        <div class="info-value">{{ customer.email|default:"N/A" }}</div>
                     </div>
-                    
                     <div class="info-item">
-                        <div class="info-label">Phone Number</div>
-                        <div class="info-value">{{ customer.phone_number }}</div>
+                        <div class="info-label">Phone Number:</div>
+                        <div class="info-value">{{ customer.phone_number|default:"N/A" }}</div>
                     </div>
-                    
                     <div class="info-item">
-                        <div class="info-label"> Status</div>
+                        <div class="info-label">Status:</div>
                         <div class="info-value">
                             <span class="status-badge {% if customer.is_active %}active{% else %}inactive{% endif %}">
                                 {% if customer.is_active %}Active{% else %}Inactive{% endif %}
@@ -259,7 +320,7 @@
                         </div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Old/New Customer</div>
+                        <div class="info-label">Old/New Customer:</div>
                         <div class="info-value">
                             <span class="status-badge {% if customer.is_active %}active{% else %}inactive{% endif %}">
                                 {% if customer.is_new %}New{% else %}Old{% endif %}
@@ -270,63 +331,7 @@
             </div>
         </div>
 
-        <div class="col-lg-4 col-md-6 col-sm-12 d-flex">
-            <div class="card mb-4 flex-grow-1">
-                <div class="card-header"><i class="fas fa-store me-2"></i> Shop Information</div>
-                <div class="card-body">
-                    <div class="info-item">
-                        <div class="info-label">Shop Name</div>
-                        <div class="info-value">{{ customer.shop_name }}</div>
-                    </div>
-                    
-                    <div class="info-item">
-                        <div class="info-label">Shop Type</div>
-                        <div class="info-value">{{ customer.get_shop_type_display }}</div>
-                    </div>
-                    
-                    <div class="info-item">
-                        <div class="info-label">GST Number</div>
-                        <div class="info-value">{{ customer.gst_number }}</div>
-                    </div>
-
-                    <div class="info-item">
-                        <div class="info-label">Discount</div>
-                        <div class="info-value">{{ customer.discount }} %</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Credit Period (Days)</div>
-                        <div class="info-value">{{ customer.credit_period|default:"Not provided" }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    
-        <div class="col-lg-4 col-md-6 col-sm-12 d-flex">
-            <div class="card mb-4 flex-grow-1">
-                <div class="card-header"><i class="fas fa-map-marker-alt me-2"></i> Shop Address</div>
-                <div class="card-body">
-                    <div class="info-item">
-                        <div class="info-label">Address</div>
-                        <div class="info-value">{{ customer.shop_address |default:"Not provided" }}</div>
-                    </div>
-                    
-                    <div class="info-item">
-                        <div class="info-label">City</div>
-                        <div class="info-value">{{ customer.shop_city|default:"Not provided" }}</div>
-                    </div>
-                    
-                    <div class="info-item">
-                        <div class="info-label">State/Province</div>
-                        <div class="info-value">{{ customer.shop_state|default:"Not provided" }}</div>
-                    </div>
-                    
-                    <div class="info-item">
-                        <div class="info-label">Pincode</div>
-                        <div class="info-value">{{ customer.shop_pincode |default:"Not provided" }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Removed Shop Information and Shop Address cards -->
 
         <div class="col-lg-8 col-md-12 col-sm-12 d-flex">
             <div class="card mb-4 flex-grow-1">
@@ -355,6 +360,7 @@
         </div>
 
     </div>
+    </div>
 
     <div class="d-flex justify-content-end mt-4">
         <a href="{% url 'edit_customer' customer.id %}" class="btn btn-edit text-white">
@@ -363,3 +369,4 @@
     </div>
 </div>
 {% endblock %}
+

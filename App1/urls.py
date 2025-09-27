@@ -76,7 +76,6 @@ urlpatterns = [
     
     #salesperson
     path('gstin-details/', gstin_details, name='gstin_details'),
-    path('check_customer_exists/', check_customer_exists, name='check_customer_exists'),
 
     path('reports/orders/', order_reports_view, name='order_reports'),
     path('reports/customers/', customer_reports , name='customer_reports'),

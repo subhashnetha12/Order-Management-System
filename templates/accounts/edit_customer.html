@@ -1,0 +1,440 @@
+{% extends 'company_admin/base.html' %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+    body {
+        background: linear-gradient(120deg, #fff5e6 60%, #fef2e6 100%);
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .card {
+        border-radius: 1.2rem;
+        box-shadow: 0 6px 32px rgba(96, 31, 47, 0.10);
+        width: 100%;
+        max-width: 1300px;
+        margin: 0 auto;
+        border: none;
+        background: #fff;
+    }
+
+    .form-label {
+        font-weight: bold !important;
+        color: #601F2F;
+    }
+
+    .user-btn {
+        background: linear-gradient(90deg, #ffb347 0%, #601F2F 100%);
+        color: #fff;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border: none;
+        box-shadow: 0 2px 8px rgba(255, 179, 71, 0.25);
+    }
+
+    .card-header {
+        background: linear-gradient(90deg, #ffb347 0%, #601F2F 100%);
+        color: #fff;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border: none;
+        box-shadow: 0 2px 8px rgba(255, 179, 71, 0.25);
+    }
+
+    .user-btn:hover {
+        background: linear-gradient(90deg, #601F2F 0%, #ffb347 100%);
+        transform: translateY(-1px);
+    }
+
+    .gradient-title {
+        background: linear-gradient(90deg, #601F2F 10%, #ffb347 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent;
+        font-weight: 700;
+        font-family: 'Poppins', sans-serif;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control,
+    .form-select {
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        border: 1.5px solid #e2e8f0;
+        background: #fdfdfd;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #ffb347;
+        box-shadow: 0 0 0 2px #ffb34733;
+    }
+
+    .input-group-text {
+        background: #fdfdfd;
+    }
+
+    label.form-label {
+        font-weight: 500;
+        letter-spacing: 0.2px;
+    }
+
+    .input-group .btn {
+        border-radius: 0 0.5rem 0.5rem 0;
+    }
+
+    .input-group input {
+        border-radius: 0.5rem 0 0 0.5rem;
+    }
+
+    @media (max-width: 991.98px) {
+        .card {
+            max-width: 98%;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .card {
+            max-width: 100%;
+            padding: 1rem !important;
+        }
+    }
+</style>
+
+
+<div class="container py-2">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card p-4">
+                <h2 class="text-center mb-4 gradient-title">
+                    Edit Customer
+                </h2>
+
+                <form method="post" enctype="multipart/form-data"
+                    action="{% url 'edit_customer' edit_customer.id %}">
+                    {% csrf_token %}
+
+                    <!-- ================= Shop Details ================= -->
+                    <div class="card mb-4">
+                        <div class="card-header text-white">
+                            Shop Details
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <!-- GST Registered -->
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="is_gst_registered" name="is_gst_registered" value="True" {% if edit_customer.is_gst_registered %} checked disabled {% endif %}>
+                                        <label class="form-check-label" for="is_gst_registered">GST Registered</label>
+                                    </div>
+                                </div>
+
+                                <!-- GST Number -->
+                                <div class="col-md-4" id="gstNumberDiv">
+                                    <label for="gst_number" class="form-label">GST Number</label>
+                                    <input type="text" class="form-control" name="gst_number" id="gst_number" placeholder="Enter valid GST no" value="{{ edit_customer.gst_number|default:'' }}" readonly>
+                                </div>
+
+                                <!-- Shop Type -->
+                                <div class="col-md-4">
+                                    <label for="shop_type" class="form-label">Shop Type</label>
+                                    <select class="form-select" name="shop_type" id="shop_type" required>
+                                        <option value="" disabled hidden {% if not edit_customer.shop_type %} selected {% endif %}>-- Select Shop Type --</option>
+                                        <option value="NMT" {% if edit_customer.shop_type == 'NMT' %} selected{% endif %}>National Modern Trade</option>
+                                        <option value="MT" {% if edit_customer.shop_type == 'MT' %} selected{% endif %}>Modern Trade</option>
+                                        <option value="SMT" {% if edit_customer.shop_type == 'SMT' %} selected{% endif %}>Semi Modern Trade</option>
+                                        <option value="SPECIAL" {% if edit_customer.shop_type == 'SPECIAL' %} selected{% endif %}>Speciality Store</option>
+                                        <option value="GT" {% if edit_customer.shop_type == 'GT' %} selected{% endif %}>General Trade</option>
+                                    </select>
+                                </div>
+
+                                <!-- Head Office Details (always shown, from Customer model) -->
+                                <div id="nonGstFields" class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="shop_name" class="form-label">Shop Name</label>
+                                        <input type="text" class="form-control" name="shop_name" id="shop_name" placeholder="Enter Shop Name" value="{{ edit_customer.shop_name|default:'' }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="shop_address" class="form-label">Shop Address</label>
+                                        <textarea class="form-control" name="shop_address" id="shop_address" rows="1" placeholder="Enter Shop Address">{{ edit_customer.shop_address_line1|default:'' }}</textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="shop_city" class="form-label">Shop City</label>
+                                        <input type="text" class="form-control" name="shop_city" id="shop_city" placeholder="Enter Shop City" value="{{ edit_customer.shop_city|default:'' }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="shop_district" class="form-label">Shop District</label>
+                                        <input type="text" class="form-control" name="shop_district" id="shop_district" placeholder="Enter Shop District" value="{{ edit_customer.shop_district|default:'' }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="shop_state" class="form-label">Shop State</label>
+                                        <input type="text" class="form-control" name="shop_state" id="shop_state" placeholder="Enter Shop State" value="{{ edit_customer.shop_state|default:'' }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="shop_pincode" class="form-label">Shop Pincode</label>
+                                        <input type="text" class="form-control" name="shop_pincode" id="shop_pincode" pattern="[0-9]*" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Enter Shop Pincode" value="{{ edit_customer.shop_pincode|default:'' }}">
+                                    </div>
+                                </div>
+
+                                <!-- Footfall -->
+                                <div class="col-md-4">
+                                    <label for="foot_fall_weekdays" class="form-label">Foot Fall in Weekdays</label>
+                                    <input type="number" class="form-control" name="foot_fall_weekdays" id="foot_fall_weekdays" min="0" placeholder="Enter Foot Fall in Weekdays" value="{{ edit_customer.weekday_footfall|default:'' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="foot_fall_weekends" class="form-label">Foot Fall in Weekends</label>
+                                    <input type="number" class="form-control" name="foot_fall_weekends" id="foot_fall_weekends" min="0" placeholder="Enter Foot Fall in Weekends" value="{{ edit_customer.weekend_footfall|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Branch Details -->
+                    <div id="branchDetails" class="mt-4">
+                        <h4 class="gradient-title text-center mb-3">Branch Details</h4>
+                        <div id="branchesContainer" class="row g-3">
+                            {% if edit_customer.is_gst_registered %}
+                                {% for branch in edit_customer.branches.all %}
+                                    {% if branch.is_head_office %}
+                                    <div class="col-md-6">
+                                        <div class="card shadow-sm p-3 mb-3 border-success">
+                                            <div class="card-header bg-success text-white fw-bold d-flex justify-content-between align-items-center">
+                                                <span>Head Office</span>
+                                            </div>
+                                            <div class="card-body">
+                                                <label>Customer Name</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_customer_name" value="{{ branch.customer_name|default:'' }}">
+                                                <label>Shop Name</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_shop_name" value="{{ branch.business_name|default:'' }}">
+                                                <label>Address Line 1</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_address_line1" value="{{ branch.address_line1|default:'' }}">
+                                                <label>Address Line 2</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_address_line2" value="{{ branch.address_line2|default:'' }}">
+                                                <label>City</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_city" value="{{ branch.city|default:'' }}">
+                                                <label>District</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_district" value="{{ branch.district|default:'' }}">
+                                                <label>State</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_state" value="{{ branch.state|default:'' }}">
+                                                <label>Pincode</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_pincode" value="{{ branch.pincode|default:'' }}">
+                                                <label>Nature of Business</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_nature_of_business" value="{{ branch.nature_of_business|default:'' }}">
+                                                <input type="hidden" name="branch_{{ forloop.counter0 }}_gstin" value="{{ branch.gstin|default:'' }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                                {% for branch in edit_customer.branches.all %}
+                                    {% if not branch.is_head_office %}
+                                    <div class="col-md-6">
+                                        <div class="card shadow-sm p-3 mb-3 border-primary">
+                                            <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
+                                                <span>Branch {{ forloop.counter }}</span>
+                                            </div>
+                                            <div class="card-body">
+                                                <label>Customer Name</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_customer_name" value="{{ branch.customer_name|default:'' }}">
+                                                <label>Shop Name</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_shop_name" value="{{ branch.business_name|default:'' }}">
+                                                <label>Address Line 1</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_address_line1" value="{{ branch.address_line1|default:'' }}">
+                                                <label>Address Line 2</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_address_line2" value="{{ branch.address_line2|default:'' }}">
+                                                <label>City</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_city" value="{{ branch.city|default:'' }}">
+                                                <label>District</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_district" value="{{ branch.district|default:'' }}">
+                                                <label>State</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_state" value="{{ branch.state|default:'' }}">
+                                                <label>Pincode</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_pincode" value="{{ branch.pincode|default:'' }}">
+                                                <label>Nature of Business</label>
+                                                <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_nature_of_business" value="{{ branch.nature_of_business|default:'' }}">
+                                                <input type="hidden" name="branch_{{ forloop.counter0 }}_gstin" value="{{ branch.gstin|default:'' }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                {% for branch in edit_customer.branches.all %}
+                                <div class="col-md-6">
+                                    <div class="card shadow-sm p-3 mb-3 border-primary">
+                                        <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
+                                            <span>Branch {{ forloop.counter }}</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <label>Customer Name</label>
+                                            <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_customer_name" value="{{ branch.customer_name|default:'' }}">
+                                            <label>Shop Name</label>
+                                            <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_shop_name" value="{{ branch.business_name|default:'' }}">
+                                            <label>Address Line 1</label>
+                                            <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_address_line1" value="{{ branch.address_line1|default:'' }}">
+                                            <label>Address Line 2</label>
+                                            <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_address_line2" value="{{ branch.address_line2|default:'' }}">
+                                            <label>City</label>
+                                            <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_city" value="{{ branch.city|default:'' }}">
+                                            <label>District</label>
+                                            <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_district" value="{{ branch.district|default:'' }}">
+                                            <label>State</label>
+                                            <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_state" value="{{ branch.state|default:'' }}">
+                                            <label>Pincode</label>
+                                            <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_pincode" value="{{ branch.pincode|default:'' }}">
+                                            <label>Nature of Business</label>
+                                            <input type="text" class="form-control mb-2" name="branch_{{ forloop.counter0 }}_nature_of_business" value="{{ branch.nature_of_business|default:'' }}">
+                                            <input type="hidden" name="branch_{{ forloop.counter0 }}_gstin" value="{{ branch.gstin|default:'' }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- ================= Customer Details ================= -->
+                    <div class="card mb-4">
+                        <div class="card-header text-white">
+                            Store Incharge/Manager Details
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                {% if not current_user.role.name == "Salesman" %}
+                                <div class="col-md-4">
+                                    <label for="user" class="form-label">Onboarded by</label>
+                                    <select class="form-select" name="user" id="user" >
+                                        <option value="" disabled selected hidden>-- Select Onboarded by --</option>
+                                        {% for user in users %}
+                                        <option value="{{ user.id }}" {% if edit_customer and edit_customer.user.id == user.id %} selected {% endif %}>{{ user.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {% else %}
+                                <input type="text" name="user" value="{{current_user.id}}" hidden>
+                                {% endif %}
+
+                                <div class="col-md-4">
+                                    <label for="full_name" class="form-label">Store Incharge/Manager Name</label>
+                                    <input type="text" class="form-control" name="full_name" id="full_name" placeholder="Enter Full Name" value="{{ edit_customer.full_name|default:'' }}" >
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="phone_number" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" name="phone_number" id="phone_number" placeholder="Enter phone No" value="{{ edit_customer.phone_number|default:'' }}" >
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" name="email" id="email" placeholder="Enter a valid Email Address" value="{{ edit_customer.email|default:'' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="discount" class="form-label">Discount (%)</label>
+                                    <input type="number" step="0.01" class="form-control" name="discount" id="discount" min="0" max="100" placeholder="Please Enter Discount Percentage" value="{{ edit_customer.discount|default:'' }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="credit_period" class="form-label">Credit Period (Days)</label>
+                                    <input type="number" class="form-control" name="credit_period" id="credit_period" min="0" placeholder="Please Enter Credit Period in Days" value="{{ edit_customer.credit_period|default:'' }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="is_active" class="form-label">Status</label>
+                                    <select class="form-select" name="is_active" id="is_active" required>
+                                        <option value="true" {% if not edit_customer or edit_customer.is_active %} selected {% endif %}>Active</option>
+                                        <option value="false" {% if edit_customer and not edit_customer.is_active %} selected {% endif %}>Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shop Images -->
+                    <div class="card mb-4">
+                        <div class="card-header">Shop Images</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="shop_images" class="form-label">Upload Shop Images</label>
+                                <input class="form-control" type="file" name="shop_images" id="shop_images" multiple accept="image/*">
+                            </div>
+                            <div class="row" id="shopImagesPreview"></div>
+                            {% if edit_customer %}
+                            <div class="mt-3">
+                                <label class="form-label">Uploaded Images</label>
+                                <div class="row" id="existingImages">
+                                    {% for image in edit_customer.shop_images.all %}
+                                    <div class="col-md-2 mb-2 position-relative" data-existing-id="{{ image.id }}">
+                                        <div class="border p-2 text-center">
+                                            <img src="{{ image.image.url }}" class="img-fluid mb-1" style="max-height: 100px;">
+                                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 remove-existing-image" style="font-size: 12px; padding: 0 4px;">×</button>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Hidden input for removed images -->
+                    <input type="hidden" name="removed_images" id="removed_images">
+
+                    <!-- Submit Button -->
+                    <div class="col-12 mb-4">
+                        <button type="submit" class="btn user-btn w-100">
+                            <i class="fas fa-user-edit me-2"></i>
+                            Update Customer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+// Only keep image upload and remove image logic, remove GSTIN API and GST checkbox logic
+document.addEventListener("DOMContentLoaded", function () {
+    // Image Upload Handling
+    const shopImagesInput = document.getElementById('shop_images');
+    let dataTransfer = new DataTransfer();
+
+    shopImagesInput.addEventListener('change', function () {
+        const preview = document.getElementById('shopImagesPreview');
+        Array.from(this.files).forEach(file=>{
+            const reader = new FileReader();
+            reader.onload = e=>{
+                const div = document.createElement('div');
+                div.classList.add('col-md-2','mb-2','position-relative');
+                div.innerHTML = `
+                    <div class="border p-2 text-center">
+                        <img src="${e.target.result}" class="img-fluid mb-1" style="max-height: 100px;">
+                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 remove-image" style="font-size:12px;padding:0 4px;">×</button>
+                    </div>`;
+                preview.appendChild(div);
+                dataTransfer.items.add(file);
+                shopImagesInput.files = dataTransfer.files;
+
+                div.querySelector('.remove-image').addEventListener('click', ()=>{
+                    const idx = Array.from(dataTransfer.files).findIndex(f=>f.name===file.name && f.size===file.size && f.type===file.type);
+                    if(idx>-1){ dataTransfer.items.remove(idx); shopImagesInput.files=dataTransfer.files; }
+                    div.remove();
+                });
+            }
+            reader.readAsDataURL(file);
+        });
+    });
+
+    // Remove existing images
+    document.querySelectorAll('.remove-existing-image').forEach(btn=>{
+        btn.addEventListener('click',function(){
+            const div = this.closest('[data-existing-id]');
+            const id = div.getAttribute('data-existing-id');
+            div.remove();
+            let removed = document.getElementById('removed_images').value.split(',').filter(Boolean);
+            removed.push(id);
+            document.getElementById('removed_images').value = removed.join(',');
+        });
+    });
+});
+</script>
+{% endblock %}

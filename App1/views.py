@@ -677,29 +677,122 @@ def gstin_details(request):
     return JsonResponse(data, status=200 if data.get("success") else 400)
 
 
-@csrf_exempt
-@require_POST
-def check_customer_exists(request):
-    body = json.loads(request.body or "{}")
-    gst_number = body.get("gst_number", "").strip()
-    shop_name = body.get("shop_name", "").strip()
-    shop_address = body.get("shop_address", "").strip()
 
-    query = Customer.objects.all()
-    exists = False
-
-    if gst_number:
-        exists = query.filter(gst_number__iexact=gst_number).exists()
-
-    if not exists and shop_name and shop_address:
-        exists = query.filter(
-            shop_name__iexact=shop_name,
-            shop_address__iexact=shop_address
-        ).exists()
-
-    return JsonResponse({"exists": exists})
 
 def add_customer(request):
+    current_user, role_permission = get_logged_in_user(request)
+    if not current_user:
+        return redirect('login')
+
+    users = User.objects.exclude(role__name__iexact="Admin")
+    context = {"current_user": current_user, "users": users, "role_permission": role_permission}
+
+    if request.method == 'POST':
+        # --- Collect form data ---
+        user_id = request.POST.get('user')
+        full_name = request.POST.get('full_name')
+        email = request.POST.get('email') or None
+        phone_number = request.POST.get('phone_number') or None
+        credit_period = request.POST.get('credit_period')
+        shop_name = request.POST.get('shop_name')
+        shop_type = request.POST.get('shop_type')
+        is_gst_registered = request.POST.get('is_gst_registered') == 'True'
+        gst_number = request.POST.get('gst_number', '').strip() if is_gst_registered else ''
+        shop_address = request.POST.get('shop_address')
+        shop_city = request.POST.get('shop_city')
+        shop_district = request.POST.get('shop_district')
+        shop_state = request.POST.get('shop_state')
+        shop_pincode = request.POST.get('shop_pincode')
+        discount = request.POST.get('discount', 0.0)
+        is_active = request.POST.get('is_active') == 'true'
+        weekday_footfall = request.POST.get('foot_fall_weekdays') or 0
+        weekend_footfall = request.POST.get('foot_fall_weekends') or 0
+
+        # --- Validations ---
+        if Customer.objects.filter(email=email).exists():
+            messages.error(request, "Email already exists.")
+            return render(request, 'accounts/add_customer.html', context)
+        if Customer.objects.filter(phone_number=phone_number).exists():
+            messages.error(request, "Phone number already exists.")
+            return render(request, 'accounts/add_customer.html', context)
+        if gst_number and Customer.objects.filter(gst_number=gst_number).exists():
+            messages.error(request, "GST number already exists.")
+            return render(request, 'accounts/add_customer.html', context)
+
+        # --- Save Customer (Head Office goes here) ---
+        customer = Customer.objects.create(
+            user_id=user_id,
+            full_name=full_name,
+            email=email,
+            phone_number=phone_number,
+            credit_period=credit_period,
+            shop_name=shop_name,
+            shop_type=shop_type,
+            is_gst_registered=is_gst_registered,
+            gst_number=gst_number,
+            shop_address_line1=shop_address,
+            shop_city=shop_city,
+            shop_district=shop_district,
+            shop_state=shop_state,
+            shop_pincode=shop_pincode,
+            discount=discount,
+            is_active=is_active,
+            weekday_footfall=int(weekday_footfall),
+            weekend_footfall=int(weekend_footfall)
+        )
+
+        # --- Save shop images ---
+        for image in request.FILES.getlist('shop_images'):
+            CustomerShopImage.objects.create(customer=customer, image=image)
+
+        # --- Fetch GSTIN details ---
+        if is_gst_registered and gst_number:
+            data = fetch_gstin_details(gst_number)
+            if data.get("success"):
+
+                # ✅ Update Customer fields from Head Office details (but keep form overrides)
+                main = data.get("main_branch")
+                if main:
+                    customer.customer_name = request.POST.get("main_customer_name", main.get("customer_name", customer.customer_name))
+                    customer.shop_name = request.POST.get("main_shop_name", main.get("business_name", customer.shop_name))
+                    customer.shop_address_line1 = (
+                        request.POST.get("main_address_line1", main.get("address_line1", "")) + ", " +
+                        request.POST.get("main_address_line2", main.get("address_line2", ""))
+                    )
+                    customer.shop_city = request.POST.get("main_city", main.get("city", customer.shop_city))
+                    customer.shop_district = request.POST.get("main_district", main.get("district", customer.shop_district))
+                    customer.shop_state = request.POST.get("main_state", main.get("state", customer.shop_state))
+                    customer.shop_pincode = request.POST.get("main_pincode", main.get("pincode", customer.shop_pincode))
+                    customer.nature_of_business = request.POST.get("main_nature_of_business", main.get("nature_of_business", ""))
+                    customer.save()
+
+                # ✅ Save branches (only in Branch table)
+                for i, br in enumerate(data.get("branches", [])):
+                    Branch.objects.create(
+                        customer=customer,
+                        gstin=request.POST.get(f"branch_{i}_gstin", gst_number),
+                        customer_name=request.POST.get(f"branch_{i}_customer_name", br.get("customer_name", "")),
+                        business_name=request.POST.get(f"branch_{i}_shop_name", br.get("business_name", "")),
+                        address_line1=request.POST.get(f"branch_{i}_address_line1", br.get("address_line1", "")),
+                        address_line2=request.POST.get(f"branch_{i}_address_line2", br.get("address_line2", "")),
+                        city=request.POST.get(f"branch_{i}_city", br.get("city", "")),
+                        district=request.POST.get(f"branch_{i}_district", br.get("district", "")),
+                        state=request.POST.get(f"branch_{i}_state", br.get("state", "")),
+                        pincode=request.POST.get(f"branch_{i}_pincode", br.get("pincode", "")),
+                        is_head_office=False,
+                        nature_of_business=request.POST.get(f"branch_{i}_nature_of_business", br.get("nature_of_business", "")),
+                        latitude=br.get("latitude", ""),
+                        longitude=br.get("longitude", "")
+                    )
+
+        messages.success(request, "Customer and branch details added successfully.")
+        return redirect('customer_table')
+
+    return render(request, 'accounts/add_customer.html', context)
+
+
+
+def add_customer1(request):
     current_user, role_permission = get_logged_in_user(request)
     if not current_user:
         return redirect('login')
@@ -808,115 +901,6 @@ def add_customer(request):
     return render(request, 'accounts/add_customer.html', context)
 
 
-def add_customer2(request):
-    current_user, role_permission = get_logged_in_user(request)
-    if not current_user:
-        return redirect('login')
-
-    users = User.objects.exclude(role__name__iexact="Admin")
-    context = {"current_user": current_user, "users": users, "role_permission": role_permission}
-
-    if request.method == 'POST':
-        # --- Collect form data ---
-        user_id = request.POST['user']
-        full_name = request.POST['full_name']
-        email = request.POST['email']
-        phone_number = request.POST['phone_number']
-        credit_period = request.POST.get('credit_period')
-        shop_name = request.POST['shop_name']
-        shop_type = request.POST.get('shop_type')
-        is_gst_registered = request.POST.get('is_gst_registered') == 'True'
-        gst_number = request.POST.get('gst_number', '').strip() if is_gst_registered else ''
-        shop_address = request.POST['shop_address']
-        shop_city = request.POST['shop_city']
-        shop_state = request.POST['shop_state']
-        shop_pincode = request.POST['shop_pincode']
-        discount = request.POST.get('discount', 0.0)
-        is_active = request.POST.get('is_active') == 'true'
-        weekday_footfall = request.POST.get('foot_fall_weekdays') or 0
-        weekend_footfall = request.POST.get('foot_fall_weekends') or 0
-
-        # --- Validations ---
-        if Customer.objects.filter(email=email).exists():
-            messages.error(request, "Email already exists.")
-            return render(request, 'accounts/add_customer.html', context)
-        if Customer.objects.filter(phone_number=phone_number).exists():
-            messages.error(request, "Phone number already exists.")
-            return render(request, 'accounts/add_customer.html', context)
-        if gst_number and Customer.objects.filter(gst_number=gst_number).exists():
-            messages.error(request, "GST number already exists.")
-            return render(request, 'accounts/add_customer.html', context)
-
-        # --- Save Customer ---
-        customer = Customer.objects.create(
-            user_id=user_id,
-            full_name=full_name,
-            email=email,
-            phone_number=phone_number,
-            credit_period=credit_period,
-            shop_name=shop_name,
-            shop_type=shop_type,
-            is_gst_registered=is_gst_registered,
-            gst_number=gst_number,
-            shop_address=shop_address,
-            shop_city=shop_city,
-            shop_state=shop_state,
-            shop_pincode=shop_pincode,
-            discount=discount,
-            is_active=is_active,
-            weekday_footfall=int(weekday_footfall),
-            weekend_footfall=int(weekend_footfall)
-        )
-
-        # --- Save shop images ---
-        for image in request.FILES.getlist('shop_images'):
-            CustomerShopImage.objects.create(customer=customer, image=image)
-
-        # --- Fetch GSTIN details & Save Branches ---
-        if is_gst_registered and gst_number:
-            data = fetch_gstin_details(gst_number)
-            if data.get("success"):
-                main = data.get("main_branch")
-                if main:
-                    Branch.objects.create(
-                        customer=customer,
-                        gstin=gst_number,
-                        customer_name=main.get("customer_name", ""),
-                        business_name=main.get("business_name", ""),
-                        address_line1=main.get("address_line1", ""),
-                        address_line2=main.get("address_line2", ""),
-                        city=main.get("city", ""),
-                        district=main.get("district", ""),
-                        pincode=main.get("pincode", ""),
-                        state=main.get("state", ""),
-                        is_head_office=True,
-                        nature_of_business=main.get("nature_of_business", ""),
-                        latitude=main.get("latitude", ""),
-                        longitude=main.get("longitude", "")
-                    )
-                for br in data.get("branches", []):
-                    Branch.objects.create(
-                        customer=customer,
-                        gstin=gst_number,
-                        customer_name=br.get("customer_name", ""),
-                        business_name=br.get("business_name", ""),
-                        address_line1=br.get("address_line1", ""),
-                        address_line2=br.get("address_line2", ""),
-                        city=br.get("city", ""),
-                        district=br.get("district", ""),
-                        pincode=br.get("pincode", ""),
-                        state=br.get("state", ""),
-                        is_head_office=False,
-                        nature_of_business=br.get("nature_of_business", ""),
-                        latitude=br.get("latitude", ""),
-                        longitude=br.get("longitude", "")
-                    )
-
-        messages.success(request, "Customer and branch details added successfully.")
-        return redirect('customer_table')
-
-    return render(request, 'accounts/add_customer.html', context)
-
 
 def edit_customer(request, id):
     current_user, role_permission = get_logged_in_user(request)
@@ -934,37 +918,49 @@ def edit_customer(request, id):
 
     if request.method == 'POST':
         try:
-            user_id = request.POST.get('user')
-            customer.user = get_object_or_404(User, id=user_id)
 
-            customer.full_name = request.POST['full_name']
-            customer.email = request.POST['email']
-            customer.phone_number = request.POST['phone_number']
-            customer.credit_period = request.POST.get('credit_period') 
-            customer.shop_name = request.POST['shop_name']
+            customer.full_name = request.POST.get('full_name')
+            customer.email = request.POST.get('email') or None
+            customer.phone_number = request.POST.get('phone_number') or None
+            customer.credit_period = request.POST.get('credit_period')
+            customer.shop_name = request.POST.get('shop_name')
             customer.shop_type = request.POST.get('shop_type')
-            customer.is_gst_registered = request.POST.get('is_gst_registered') == 'True'
-            customer.gst_number = request.POST.get('gst_number', '').strip() if customer.is_gst_registered else ''
-            customer.shop_address = request.POST['shop_address']
-            customer.shop_city = request.POST['shop_city']
-            customer.shop_state = request.POST['shop_state']
-            customer.shop_pincode = request.POST['shop_pincode']
-            customer.discount = request.POST.get('discount') or 0.0
-            customer.is_active = request.POST.get('is_active') == 'true'
+            # Do not update GST fields
+            # customer.is_gst_registered = customer.is_gst_registered
+            # customer.gst_number = customer.gst_number
+            customer.shop_address_line1 = request.POST.get('shop_address_line1', '').strip()
+            customer.shop_address_line1 = request.POST.get('shop_address', customer.shop_address_line1)
+            customer.shop_city = request.POST.get('shop_city', customer.shop_city)
+            customer.shop_district = request.POST.get('shop_district', customer.shop_district)
+            customer.shop_state = request.POST.get('shop_state', customer.shop_state)
+            customer.shop_pincode = request.POST.get('shop_pincode', customer.shop_pincode)
             customer.weekday_footfall = int(request.POST.get('foot_fall_weekdays')) if request.POST.get('foot_fall_weekdays') else None
             customer.weekend_footfall = int(request.POST.get('foot_fall_weekends')) if request.POST.get('foot_fall_weekends') else None
 
             customer.save()
 
+            # Update branch details
+            for idx, branch in enumerate(customer.branches.all()):
+                prefix = f"branch_{idx}_"
+                branch.customer_name = request.POST.get(prefix + "customer_name", branch.customer_name)
+                branch.business_name = request.POST.get(prefix + "shop_name", branch.business_name)
+                branch.address_line1 = request.POST.get(prefix + "address_line1", branch.address_line1)
+                branch.address_line2 = request.POST.get(prefix + "address_line2", branch.address_line2)
+                branch.city = request.POST.get(prefix + "city", branch.city)
+                branch.district = request.POST.get(prefix + "district", branch.district)
+                branch.state = request.POST.get(prefix + "state", branch.state)
+                branch.pincode = request.POST.get(prefix + "pincode", branch.pincode)
+                branch.nature_of_business = request.POST.get(prefix + "nature_of_business", branch.nature_of_business)
+                # GSTIN should not be editable
+                branch.save()
+
             for image in request.FILES.getlist('shop_images'):
                 CustomerShopImage.objects.create(customer=customer, image=image)
-
 
             removed_images = request.POST.get("removed_images", "")
             if removed_images:
                 ids = removed_images.split(",")
                 CustomerShopImage.objects.filter(id__in=ids, customer=customer).delete()
-    
 
             messages.success(request, "Customer updated successfully.")
             return redirect('customer_table')
@@ -972,7 +968,7 @@ def edit_customer(request, id):
         except Exception as e:
             messages.error(request, f"Error updating customer: {e}")
 
-    return render(request, 'accounts/add_customer.html', context)
+    return render(request, 'accounts/edit_customer.html', context)
 
 
 def delete_customer(request, id):
@@ -1438,7 +1434,7 @@ def get_customer_details(request, customer_id):
         customer = Customer.objects.get(id=customer_id)
         return JsonResponse({
             'discount': customer.discount,
-            'shop_address': customer.shop_address,
+            'shop_address': customer.shop_address_line1,
             'shop_city': customer.shop_city,
             'shop_district': customer.shop_district,
             'shop_state': customer.shop_state,
@@ -1694,12 +1690,12 @@ def delete_order(request, order_id):
     try:
         with transaction.atomic():
             # 1️⃣ Restore stock from order items
-            for item in order.items.all():
-                # Restore stock to DailyProduction (FIFO batches not tracked here, but you can extend)
-                inventory, _ = Inventory.objects.get_or_create(product=item.product)
-                inventory.stock_out -= item.quantity
-                inventory.update_stock()
-
+            # for item in order.items.all():
+            #     # Restore stock to DailyProduction (FIFO batches not tracked here, but you can extend)
+            #     inventory, _ = Inventory.objects.get_or_create(product=item.product)
+            #     inventory.stock_out -= item.quantity
+            #     inventory.update_stock()
+            #
             # 2️⃣ Delete the order (cascades to OrderItems, Invoice, Payments)
             order.delete()
 
@@ -1775,7 +1771,7 @@ def generate_invoice(request, order_id):
                     weight_per_packet=item.weight,
                     current_stock__gt=0
                 )
-                .order_by("manufactured_date", "id")  # FIFO order
+                .order_by("expiry_date", "id")  # FIFO order
             )
 
             for batch in fifo_batches:
@@ -1856,12 +1852,13 @@ def view_customer(request, customer_id):
     
     customer = get_object_or_404(Customer, id=customer_id)
     shop_images = customer.shop_images.all()
-    
+    branches = customer.branches.all()
     context = {
         'current_user': current_user,
         'role_permission': role_permission,
         'customer': customer,
-        'shop_images': shop_images
+        'shop_images': shop_images,
+        'branches': branches
     }
     return render(request, 'accounts/view_customer.html', context)
 
@@ -1954,6 +1951,7 @@ def order_reports_view(request):
     orders = Order.objects.select_related('customer').prefetch_related('items__product')
     salespersons = User.objects.filter(role__name__icontains="sales")
     customers = Customer.objects.all()
+    unique_shops = Customer.objects.values('shop_name').distinct()
 
     cities = customers.values_list('shop_city', flat=True).distinct()
 
@@ -2013,6 +2011,7 @@ def order_reports_view(request):
         "salespersons": salespersons,
         "customers": customers,
         "cities": cities, 
+        'unique_shops': unique_shops,
     }
     return render(request, 'company_admin/order_reports.html', context)
 

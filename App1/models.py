@@ -129,7 +129,7 @@ class User(models.Model):
     
 
 class Customer(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='customers')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='customers')
     customer_name = models.CharField(max_length=255,null=True,blank=True)
     full_name = models.CharField(max_length=255,null=True,blank=True)
     email = models.EmailField(unique=True, null=True,blank=True)
@@ -147,7 +147,8 @@ class Customer(models.Model):
     )
     gst_number = models.CharField(max_length=100,null=True,blank=True)
     shop_name = models.CharField(max_length=255)
-    shop_address = models.TextField()
+    shop_address_line1 = models.TextField()
+    shop_address_line2 = models.TextField()
     shop_city = models.CharField(max_length=255)
     shop_district = models.CharField(max_length=255)
     shop_pincode = models.CharField(max_length=50)

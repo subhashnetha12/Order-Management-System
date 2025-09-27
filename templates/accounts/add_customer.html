@@ -108,11 +108,11 @@
         <div class="col-12">
             <div class="card p-4">
                 <h2 class="text-center mb-4 gradient-title">
-                    {% if edit_customer %}Edit{% else %}Add{% endif %} Customer
+                    AddCustomer
                 </h2>
 
                 <form method="post" enctype="multipart/form-data"
-                    action="{% if edit_customer %}{% url 'edit_customer' edit_customer.id %}{% else %}{% url 'add_customer' %}{% endif %}">
+                    action="{% url 'add_customer' %}">
                     {% csrf_token %}
 
                     <!-- ================= Shop Details ================= -->
@@ -126,8 +126,7 @@
                                 <!-- GST Registered -->
                                 <div class="col-md-4">
                                     <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="is_gst_registered" name="is_gst_registered" value="True"
-                                            {% if edit_customer.is_gst_registered %} checked {% endif %}>
+                                        <input type="checkbox" class="form-check-input" id="is_gst_registered" name="is_gst_registered" value="True" >
                                         <label class="form-check-label" for="is_gst_registered">GST Registered</label>
                                     </div>
                                 </div>
@@ -135,20 +134,19 @@
                                 <!-- GST Number -->
                                 <div class="col-md-4" id="gstNumberDiv">
                                     <label for="gst_number" class="form-label">GST Number</label>
-                                    <input type="text" class="form-control" name="gst_number" id="gst_number" placeholder="Enter valid GST no"
-                                        value="{{ edit_customer.gst_number|default:'' }}">
+                                    <input type="text" class="form-control" name="gst_number" id="gst_number" placeholder="Enter valid GST no">
                                 </div>
 
                                 <!-- Shop Type -->
                                 <div class="col-md-4">
                                     <label for="shop_type" class="form-label">Shop Type</label>
                                     <select class="form-select" name="shop_type" id="shop_type" required>
-                                        <option value="" disabled hidden {% if not edit_customer.shop_type %} selected {% endif %}>-- Select Shop Type --</option>
-                                        <option value="NMT" {% if edit_customer.shop_type == 'NMT' %} selected{% endif %}>National Modern Trade</option>
-                                        <option value="MT" {% if edit_customer.shop_type == 'MT' %} selected{% endif %}>Modern Trade</option>
-                                        <option value="SMT" {% if edit_customer.shop_type == 'SMT' %} selected{% endif %}>Semi Modern Trade</option>
-                                        <option value="SPECIAL" {% if edit_customer.shop_type == 'SPECIAL' %} selected{% endif %}>Speciality Store</option>
-                                        <option value="GT" {% if edit_customer.shop_type == 'GT' %} selected{% endif %}>General Trade</option>
+                                        <option value="" disabled selected hidden>-- Select Shop Type --</option>
+                                        <option value="NMT">National Modern Trade</option>
+                                        <option value="MT">Modern Trade</option>
+                                        <option value="SMT">Semi Modern Trade</option>
+                                        <option value="SPECIAL">Speciality Store</option>
+                                        <option value="GT">General Trade</option>
                                     </select>
                                 </div>
 
@@ -157,33 +155,33 @@
                                     <div class="col-md-6">
                                         <label for="shop_name" class="form-label">Shop Name</label>
                                         <input type="text" class="form-control" name="shop_name" id="shop_name"
-                                            placeholder="Enter Shop Name" value="{{ edit_customer.shop_name|default:'' }}">
+                                            placeholder="Enter Shop Name" value="">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="shop_address" class="form-label">Shop Address</label>
                                         <textarea class="form-control" name="shop_address" id="shop_address" rows="1"
-                                                placeholder="Enter Shop Address">{{ edit_customer.shop_address|default:'' }}</textarea>
+                                            placeholder="Enter Shop Address"></textarea>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="shop_city" class="form-label">Shop City</label>
                                         <input type="text" class="form-control" name="shop_city" id="shop_city"
-                                            placeholder="Enter Shop City" value="{{ edit_customer.shop_city|default:'' }}">
+                                            placeholder="Enter Shop City" value="">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="shop_district" class="form-label">Shop District</label>
                                         <input type="text" class="form-control" name="shop_district" id="shop_district"
-                                            placeholder="Enter Shop District" value="{{ edit_customer.shop_district|default:'' }}">
+                                            placeholder="Enter Shop District" value="">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="shop_state" class="form-label">Shop State</label>
                                         <input type="text" class="form-control" name="shop_state" id="shop_state"
-                                            placeholder="Enter Shop State" value="{{ edit_customer.shop_state|default:'' }}">
+                                            placeholder="Enter Shop State" value="">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="shop_pincode" class="form-label">Shop Pincode</label>
                                         <input type="text" class="form-control" name="shop_pincode" id="shop_pincode"  pattern="[0-9]*" inputmode="numeric"
                                             oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                                            placeholder="Enter Shop Pincode" value="{{ edit_customer.shop_pincode|default:'' }}">
+                                            placeholder="Enter Shop Pincode" value="">
                                     </div>
                                 </div>
 
@@ -191,13 +189,13 @@
                                 <div class="col-md-4">
                                     <label for="foot_fall_weekdays" class="form-label">Foot Fall in Weekdays</label>
                                     <input type="number" class="form-control" name="foot_fall_weekdays" id="foot_fall_weekdays" min="0"
-                                        placeholder="Enter Foot Fall in Weekdays" value="{{ edit_customer.weekday_footfall|default:'' }}">
+                                        placeholder="Enter Foot Fall in Weekdays" value="">
                                 </div>
 
                                 <div class="col-md-4">
                                     <label for="foot_fall_weekends" class="form-label">Foot Fall in Weekends</label>
                                     <input type="number" class="form-control" name="foot_fall_weekends" id="foot_fall_weekends" min="0"
-                                        placeholder="Enter Foot Fall in Weekends" value="{{ edit_customer.weekend_footfall|default:'' }}">
+                                        placeholder="Enter Foot Fall in Weekends" value="">
                                 </div>
 
                             </div>
@@ -217,55 +215,51 @@
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
-                                {% if not current_user.role.name == "Salesman" %}
                                 <div class="col-md-4">
-                                    <label for="user" class="form-label">Assigned Salesman</label>
-                                    <select class="form-select" name="user" id="user" required>
-                                        <option value="" disabled selected hidden>-- Select Salesman --</option>
+                                    <label for="user" class="form-label">Onboarded by</label>
+                                    <select class="form-select" name="user" id="user" >
+                                        <option value="" disabled selected hidden>-- Select Onboarded by --</option>
                                         {% for user in users %}
-                                        <option value="{{ user.id }}" {% if edit_customer and edit_customer.user.id == user.id %} selected {% endif %}>{{ user.username }}</option>
+                                        <option value="{{ user.id }}">{{ user.username }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
-                                {% else %}
-                                <input type="text" name="user" value="{{current_user.id}}" hidden>
-                                {% endif %}
 
                                 <div class="col-md-4">
                                     <label for="full_name" class="form-label">Store Incharge/Manager Name</label>
                                     <input type="text" class="form-control" name="full_name" id="full_name"
-                                        placeholder="Enter Full Name" value="{{ edit_customer.full_name|default:'' }}" >
+                                        placeholder="Enter Full Name" value="" >
                                 </div>
 
                                 <div class="col-md-4">
                                     <label for="phone_number" class="form-label">Phone Number</label>
                                     <input type="tel" class="form-control" name="phone_number" id="phone_number"
-                                        placeholder="Enter phone No" value="{{ edit_customer.phone_number|default:'' }}" >
+                                        placeholder="Enter phone No" value="" >
                                 </div>
 
                                 <div class="col-md-4">
                                     <label for="email" class="form-label">Email</label>
                                     <input type="email" class="form-control" name="email" id="email"
-                                        placeholder="Enter a valid Email Address" value="{{ edit_customer.email|default:'' }}">
+                                        placeholder="Enter a valid Email Address" value="">
                                 </div>
 
                                 <div class="col-md-4">
                                     <label for="discount" class="form-label">Discount (%)</label>
                                     <input type="number" step="0.01" class="form-control" name="discount" id="discount" min="0" max="100"
-                                        placeholder="Please Enter Discount Percentage" value="{{ edit_customer.discount|default:'' }}" required>
+                                        placeholder="Please Enter Discount Percentage" value="" required>
                                 </div>
 
                                 <div class="col-md-4">
                                     <label for="credit_period" class="form-label">Credit Period (Days)</label>
                                     <input type="number" class="form-control" name="credit_period" id="credit_period" min="0"
-                                        placeholder="Please Enter Credit Period in Days" value="{{ edit_customer.credit_period|default:'' }}" required>
+                                        placeholder="Please Enter Credit Period in Days" value="" required>
                                 </div>
 
                                 <div class="col-md-4">
                                     <label for="is_active" class="form-label">Status</label>
                                     <select class="form-select" name="is_active" id="is_active" required>
-                                        <option value="true" {% if not edit_customer or edit_customer.is_active %} selected {% endif %}>Active</option>
-                                        <option value="false" {% if edit_customer and not edit_customer.is_active %} selected {% endif %}>Inactive</option>
+                                        <option value="true" selected>Active</option>
+                                        <option value="false">Inactive</option>
                                     </select>
                                 </div>
                             </div>
@@ -282,21 +276,7 @@
                             </div>
                             <div class="row" id="shopImagesPreview"></div>
 
-                            {% if edit_customer %}
-                            <div class="mt-3">
-                                <label class="form-label">Uploaded Images</label>
-                                <div class="row" id="existingImages">
-                                    {% for image in edit_customer.shop_images.all %}
-                                    <div class="col-md-2 mb-2 position-relative" data-existing-id="{{ image.id }}">
-                                        <div class="border p-2 text-center">
-                                            <img src="{{ image.image.url }}" class="img-fluid mb-1" style="max-height: 100px;">
-                                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 remove-existing-image" style="font-size: 12px; padding: 0 4px;">×</button>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            {% endif %}
+
                         </div>
                     </div>
 
@@ -306,8 +286,8 @@
                     <!-- Submit Button -->
                     <div class="col-12 mb-4">
                         <button type="submit" class="btn user-btn w-100">
-                            <i class="fas fa-user-{% if edit_customer %}edit{% else %}plus{% endif %} me-2"></i>
-                            {% if edit_customer %} Update {% else %} Add {% endif %} Customer
+                            <i class="fas fa-user-plus me-2"></i>
+                            Add Customer
                         </button>
                     </div>
                 </form>
@@ -342,46 +322,6 @@ document.addEventListener("DOMContentLoaded", function () {
     toggleFields();
     gstCheckbox.addEventListener('change', toggleFields);
 
-    // ✅ Reusable check function
-    function checkExists(branchData, cardEl) {
-        fetch("{% url 'check_customer_exists' %}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": "{{ csrf_token }}"
-            },
-            body: JSON.stringify({
-                gst_number: branchData.gstin || "",
-                shop_name: branchData.business_name,
-                shop_address: `${branchData.address_line1}, ${branchData.address_line2}`,
-                latitude: branchData.latitude,
-                longitude: branchData.longitude
-            })
-        })
-        .then(res => res.json())
-        .then(resData => {
-            const header = cardEl.querySelector(".card-header");
-
-            if (resData.exists) {
-                // 🔴 Remove radio button
-                const radio = header.querySelector("input[type=radio]");
-                if (radio) radio.remove();
-
-                // 🟢 Add symbol instead
-                const badge = document.createElement("span");
-                badge.className = "badge bg-success ms-2";
-                badge.innerText = "Already Exists";
-                header.appendChild(badge);
-
-                // 🔴 Add warning inside card body
-                const warning = document.createElement("div");
-                warning.className = "alert alert-danger mt-2 fw-bold";
-                warning.innerText = "⚠️ This branch already exists in the system!";
-                cardEl.querySelector(".card-body").appendChild(warning);
-            }
-        })
-        .catch(err => console.error("Validation error:", err));
-    }
 
 
     // Fetch GSTIN Details
@@ -405,64 +345,80 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const d = data.main_branch;
 
-            // Main branch card
-            const mainCard = document.createElement("div");
-            mainCard.className = "col-md-6";
-            mainCard.innerHTML = `
-                <div class="card shadow-sm p-3 mb-3 border-success">
-                    <div class="card-header bg-success text-white fw-bold d-flex justify-content-between align-items-center">
-                        <span>Head Office</span>
-                        <input type="radio" name="selected_branch" value="main" checked>
-                    </div>
-                    <div class="card-body">
-                        <p><strong>Customer Name:</strong> ${d.customer_name || ''}</p>
-                        <p><strong>Shop Name:</strong> ${d.business_name||''}</p>
-                        <p><strong>Shop Address:</strong> ${d.address_line1}, ${d.address_line2}</p>
-                        <p><strong>Shop City:</strong> ${d.city||''}</p>
-                        <p><strong>Shop District:</strong> ${d.district || ''}</p>
-                        <p><strong>Shop State:</strong> ${d.state||''}</p>
-                        <p><strong>Shop Pincode:</strong> ${d.pincode||''}</p>
-                        <p><strong>Nature of Business:</strong> ${d.nature_of_business || ''}</p>
-                        <p><strong>Latitude:</strong> ${d.latitude || ''}</p>
-                        <p><strong>Longitude:</strong> ${d.longitude || ''}</p>
-                    </div>
-                </div>`;
-            container.appendChild(mainCard);
-
-            // ✅ Validate main branch
-            checkExists(d, mainCard);
-
-            // Branches
-            (data.branches||[]).forEach((b,i)=>{
-                const branchCard = document.createElement("div");
-                branchCard.className = "col-md-6";
-                branchCard.innerHTML = `
-                    <div class="card shadow-sm p-3 mb-3 border-primary">
-                        <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
-                            <span>Branch ${i + 1}</span>
-                            <input type="radio" name="selected_branch" value="${i}">
+                // Head Office card
+                const mainCard = document.createElement("div");
+                mainCard.className = "col-md-6";
+                mainCard.innerHTML = `
+                    <div class="card shadow-sm p-3 mb-3 border-success">
+                        <div class="card-header bg-success text-white fw-bold d-flex justify-content-between align-items-center">
+                            <span>Head Office</span>
+                            <input type="checkbox" name="selected_branches" value="main" checked>
                         </div>
                         <div class="card-body">
-                            <p><strong>Customer Name:</strong> ${b.customer_name || ''}</p>
-                            <p><strong>Shop Name:</strong> ${b.business_name||''}</p>
-                            <p><strong>Shop Address:</strong> ${b.address_line1}, ${b.address_line2}</p>
-                            <p><strong>Shop City:</strong> ${b.city||''}</p>
-                            <p><strong>Shop District:</strong> ${b.district || ''}</p>
-                            <p><strong>Shop State:</strong> ${b.state||''}</p>
-                            <p><strong>Shop Pincode:</strong> ${b.pincode||''}</p>
-                            <p><strong>Nature of Business:</strong> ${b.nature_of_business || ''}</p>
-                            <p><strong>Latitude:</strong> ${b.latitude || ''}</p>
-                            <p><strong>Longitude:</strong> ${b.longitude || ''}</p>
+                            <label>Customer Name</label>
+                            <input type="text" class="form-control mb-2" name="main_customer_name" value="${d.customer_name || ''}">
+                            <label>Shop Name</label>
+                            <input type="text" class="form-control mb-2" name="main_shop_name" value="${d.business_name || ''}">
+                            <label>Address Line 1</label>
+                            <input type="text" class="form-control mb-2" name="main_address_line1" value="${d.address_line1 || ''}">
+                            <label>Address Line 2</label>
+                            <input type="text" class="form-control mb-2" name="main_address_line2" value="${d.address_line2 || ''}">
+                            <label>City</label>
+                            <input type="text" class="form-control mb-2" name="main_city" value="${d.city || ''}">
+                            <label>District</label>
+                            <input type="text" class="form-control mb-2" name="main_district" value="${d.district || ''}">
+                            <label>State</label>
+                            <input type="text" class="form-control mb-2" name="main_state" value="${d.state || ''}">
+                            <label>Pincode</label>
+                            <input type="text" class="form-control mb-2" name="main_pincode" value="${d.pincode || ''}">
+                            <label>Nature of Business</label>
+                            <input type="text" class="form-control mb-2" name="main_nature_of_business" value="${d.nature_of_business || ''}">
+                            <input type="hidden" name="main_gstin" value="${d.gstin || ''}">
                         </div>
                     </div>`;
-                container.appendChild(branchCard);
+                container.appendChild(mainCard);
 
-                // ✅ Validate this branch
-                checkExists(b, branchCard);
+                // Branches
+                (data.branches || []).forEach((b, i) => {
+                    const branchCard = document.createElement("div");
+                    branchCard.className = "col-md-6";
+                    branchCard.innerHTML = `
+                        <div class="card shadow-sm p-3 mb-3 border-primary">
+                            <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
+                                <span>Branch ${i + 1}</span>
+                                <input type="checkbox" name="selected_branches" value="${i}" checked>
+                            </div>
+                            <div class="card-body">
+                                <label>Customer Name</label>
+                                <input type="text" class="form-control mb-2" name="branch_${i}_customer_name" value="${b.customer_name || ''}">
+                                <label>Shop Name</label>
+                                <input type="text" class="form-control mb-2" name="branch_${i}_shop_name" value="${b.business_name || ''}">
+                                <label>Address Line 1</label>
+                                <input type="text" class="form-control mb-2" name="branch_${i}_address_line1" value="${b.address_line1 || ''}">
+                                <label>Address Line 2</label>
+                                <input type="text" class="form-control mb-2" name="branch_${i}_address_line2" value="${b.address_line2 || ''}">
+                                <label>City</label>
+                                <input type="text" class="form-control mb-2" name="branch_${i}_city" value="${b.city || ''}">
+                                <label>District</label>
+                                <input type="text" class="form-control mb-2" name="branch_${i}_district" value="${b.district || ''}">
+                                <label>State</label>
+                                <input type="text" class="form-control mb-2" name="branch_${i}_state" value="${b.state || ''}">
+                                <label>Pincode</label>
+                                <input type="text" class="form-control mb-2" name="branch_${i}_pincode" value="${b.pincode || ''}">
+                                <label>Nature of Business</label>
+                                <input type="text" class="form-control mb-2" name="branch_${i}_nature_of_business" value="${b.nature_of_business || ''}">
+                                <input type="hidden" name="branch_${i}_gstin" value="${b.gstin || ''}">
+                            </div>
+                        </div>`;
+                    container.appendChild(branchCard);
+                });
+            })
+            .catch(err => {
+                console.error("GSTIN fetch error:", err);
+                alert("Error fetching GSTIN details!");
             });
-        })
-        .catch(err => console.error("GSTIN API error:", err));
     });
+
 
 
     // Image Upload Handling
@@ -509,11 +465,5 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
-
-<script>
-    // After rendering branch card inside the .then(data => {...})
-
-
-</script>
 
 {% endblock %}

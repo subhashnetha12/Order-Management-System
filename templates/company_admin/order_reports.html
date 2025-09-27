@@ -177,8 +177,8 @@ table.dataTable tbody tr:hover {
 
         <select id="customerFilter" class="form-select me-2 mb-2" style="max-width: 220px;">
             <option value="">All Customers</option>
-            {% for cust in customers %}
-                <option value="{{ cust.full_name }}">{{ cust.full_name }}</option>
+            {% for cust in unique_shops %}
+                <option value="{{ cust.shop_name }}">{{ cust.shop_name }}</option>
             {% endfor %}
         </select>
 
@@ -200,8 +200,8 @@ table.dataTable tbody tr:hover {
             {% endfor %}
         </select>
 
-        <select id="ordeType" class="form-select me-2 mb-2" style="max-width: 220px;">
-            <option value="">Order Type</option>
+        <select id="orderType" class="form-select me-2 mb-2" style="max-width: 220px;">
+            <option value="">All Order Type</option>
             <option value="Free">Free Order</option>
             <option value="Regular">Regular Order</option>
         </select>
@@ -300,7 +300,7 @@ $(document).ready(function () {
 
         let dateStr = data[3] || ""; // order date column
         let salesmanCol = (data[1] || "").toLowerCase();
-        let customerCol = (data[5] || "").toLowerCase();
+        let customerCol = (data[6] || "").toLowerCase();
         let shopTypeCol = (data[7] || "").toLowerCase();
         let shopCityCol = (data[6] || "").toLowerCase();
         let ordeTypeCol = (data[4] || "").toLowerCase();
