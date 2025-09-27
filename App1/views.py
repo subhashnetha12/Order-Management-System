@@ -709,15 +709,18 @@ def add_customer(request):
         weekend_footfall = request.POST.get('foot_fall_weekends') or 0
 
         # --- Validations ---
-        if Customer.objects.filter(email=email).exists():
-            messages.error(request, "Email already exists.")
-            return render(request, 'accounts/add_customer.html', context)
-        if Customer.objects.filter(phone_number=phone_number).exists():
-            messages.error(request, "Phone number already exists.")
-            return render(request, 'accounts/add_customer.html', context)
-        if gst_number and Customer.objects.filter(gst_number=gst_number).exists():
-            messages.error(request, "GST number already exists.")
-            return render(request, 'accounts/add_customer.html', context)
+        if email:
+            if Customer.objects.filter(email=email).exists():
+                messages.error(request, "Email already exists.")
+                return render(request, 'accounts/add_customer.html', context)
+        if phone_number:
+            if Customer.objects.filter(phone_number=phone_number).exists():
+                messages.error(request, "Phone number already exists.")
+                return render(request, 'accounts/add_customer.html', context)
+        if is_gst_registered and gst_number:    
+            if gst_number and Customer.objects.filter(gst_number=gst_number).exists():
+                messages.error(request, "GST number already exists.")
+                return render(request, 'accounts/add_customer.html', context)
 
         # --- Save Customer (Head Office goes here) ---
         customer = Customer.objects.create(
@@ -936,6 +939,16 @@ def edit_customer(request, id):
             customer.shop_pincode = request.POST.get('shop_pincode', customer.shop_pincode)
             customer.weekday_footfall = int(request.POST.get('foot_fall_weekdays')) if request.POST.get('foot_fall_weekdays') else None
             customer.weekend_footfall = int(request.POST.get('foot_fall_weekends')) if request.POST.get('foot_fall_weekends') else None
+
+            # Update onboarded by (user) field
+            user_id = request.POST.get('user')
+            if user_id:
+                try:
+                    customer.user = User.objects.get(id=user_id)
+                except User.DoesNotExist:
+                    customer.user = None
+            else:
+                customer.user = None
 
             customer.save()
 

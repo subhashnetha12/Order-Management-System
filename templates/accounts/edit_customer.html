@@ -123,6 +123,7 @@
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
+                                {% if edit_customer.is_gst_registered %}
                                 <!-- GST Registered -->
                                 <div class="col-md-4">
                                     <div class="form-check">
@@ -131,11 +132,13 @@
                                     </div>
                                 </div>
 
+                                
                                 <!-- GST Number -->
                                 <div class="col-md-4" id="gstNumberDiv">
                                     <label for="gst_number" class="form-label">GST Number</label>
                                     <input type="text" class="form-control" name="gst_number" id="gst_number" placeholder="Enter valid GST no" value="{{ edit_customer.gst_number|default:'' }}" readonly>
                                 </div>
+                                {% endif %}
 
                                 <!-- Shop Type -->
                                 <div class="col-md-4">

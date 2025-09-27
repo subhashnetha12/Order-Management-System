@@ -239,7 +239,7 @@
                     <i class="fas fa-info-circle me-2"></i>Shop Info
                 </div>
                 <div class="card-body">
-                    <div class="info-item"><span class="info-label">GST Registered:</span> <span class="info-value">{% if customer.is_gst_registered %}Yes{% else %}No{% endif %}</span></div>
+                    <div class="info-item"><span class="info-label">GST Registered:</span> <span class="status-badge {% if customer.is_active %}active{% else %}inactive{% endif %}">{% if customer.is_gst_registered %}Yes{% else %}No{% endif %}</span></div>
                     {% if customer.is_gst_registered %}
                     <div class="info-item"><span class="info-label">GST Number:</span> <span class="info-value">{{ customer.gst_number|default:"N/A" }}</span></div>
                     {% endif %}

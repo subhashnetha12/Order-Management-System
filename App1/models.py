@@ -132,8 +132,8 @@ class Customer(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='customers')
     customer_name = models.CharField(max_length=255,null=True,blank=True)
     full_name = models.CharField(max_length=255,null=True,blank=True)
-    email = models.EmailField(unique=True, null=True,blank=True)
-    phone_number = models.CharField(unique=True, max_length=50, null=True,blank=True)
+    email = models.EmailField(null=True,blank=True)
+    phone_number = models.CharField(max_length=50, null=True,blank=True)
     shop_type = models.CharField(
         max_length=50,
         choices=[
