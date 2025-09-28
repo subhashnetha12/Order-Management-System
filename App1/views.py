@@ -709,14 +709,7 @@ def add_customer(request):
         weekend_footfall = request.POST.get('foot_fall_weekends') or 0
 
         # --- Validations ---
-        if email:
-            if Customer.objects.filter(email=email).exists():
-                messages.error(request, "Email already exists.")
-                return render(request, 'accounts/add_customer.html', context)
-        if phone_number:
-            if Customer.objects.filter(phone_number=phone_number).exists():
-                messages.error(request, "Phone number already exists.")
-                return render(request, 'accounts/add_customer.html', context)
+    
         if is_gst_registered and gst_number:    
             if gst_number and Customer.objects.filter(gst_number=gst_number).exists():
                 messages.error(request, "GST number already exists.")
