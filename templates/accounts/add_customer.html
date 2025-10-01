@@ -134,13 +134,15 @@
                                 <!-- GST Number -->
                                 <div class="col-md-4" id="gstNumberDiv">
                                     <label for="gst_number" class="form-label">GST Number</label>
-                                    <input type="text" class="form-control" name="gst_number" id="gst_number" placeholder="Enter valid GST no">
+                                    <input type="text" class="form-control" name="gst_number" id="gst_number" placeholder="Enter valid GST no"
+                                        {% if current_user.role.name|lower != "admin" and is_gst_registered %}required{% endif %}>
                                 </div>
 
                                 <!-- Shop Type -->
                                 <div class="col-md-4">
                                     <label for="shop_type" class="form-label">Shop Type</label>
-                                    <select class="form-select" name="shop_type" id="shop_type" required>
+                                    <select class="form-select" name="shop_type" id="shop_type"
+                                        {% if current_user.role.name|lower != "admin" %}required{% endif %}>
                                         <option value="" disabled selected hidden>-- Select Shop Type --</option>
                                         <option value="NMT">National Modern Trade</option>
                                         <option value="MT">Modern Trade</option>
@@ -155,33 +157,39 @@
                                     <div class="col-md-6">
                                         <label for="shop_name" class="form-label">Shop Name</label>
                                         <input type="text" class="form-control" name="shop_name" id="shop_name"
-                                            placeholder="Enter Shop Name" value="">
+                                            placeholder="Enter Shop Name" value=""
+                                            {% if not is_gst_registered %}required{% endif %}>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="shop_address" class="form-label">Shop Address</label>
                                         <textarea class="form-control" name="shop_address" id="shop_address" rows="1"
-                                            placeholder="Enter Shop Address"></textarea>
+                                            placeholder="Enter Shop Address"
+                                            {% if current_user.role.name|lower != "admin" and not is_gst_registered %}required{% endif %}></textarea>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="shop_city" class="form-label">Shop City</label>
                                         <input type="text" class="form-control" name="shop_city" id="shop_city"
-                                            placeholder="Enter Shop City" value="">
+                                            placeholder="Enter Shop City" value=""
+                                            {% if current_user.role.name|lower != "admin" and not is_gst_registered %}required{% endif %}>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="shop_district" class="form-label">Shop District</label>
                                         <input type="text" class="form-control" name="shop_district" id="shop_district"
-                                            placeholder="Enter Shop District" value="">
+                                            placeholder="Enter Shop District" value=""
+                                            {% if current_user.role.name|lower != "admin" and not is_gst_registered %}required{% endif %}>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="shop_state" class="form-label">Shop State</label>
                                         <input type="text" class="form-control" name="shop_state" id="shop_state"
-                                            placeholder="Enter Shop State" value="">
+                                            placeholder="Enter Shop State" value=""
+                                            {% if current_user.role.name|lower != "admin" and not is_gst_registered %}required{% endif %}>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="shop_pincode" class="form-label">Shop Pincode</label>
                                         <input type="text" class="form-control" name="shop_pincode" id="shop_pincode"  pattern="[0-9]*" inputmode="numeric"
                                             oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                                            placeholder="Enter Shop Pincode" value="">
+                                            placeholder="Enter Shop Pincode" value=""
+                                            {% if current_user.role.name|lower != "admin" and not is_gst_registered %}required{% endif %}>
                                     </div>
                                 </div>
 
@@ -189,13 +197,15 @@
                                 <div class="col-md-4">
                                     <label for="foot_fall_weekdays" class="form-label">Foot Fall in Weekdays</label>
                                     <input type="number" class="form-control" name="foot_fall_weekdays" id="foot_fall_weekdays" min="0"
-                                        placeholder="Enter Foot Fall in Weekdays" value="">
+                                        placeholder="Enter Foot Fall in Weekdays" value=""
+                                        {% if current_user.role.name|lower != "admin" %}required{% endif %}>
                                 </div>
 
                                 <div class="col-md-4">
                                     <label for="foot_fall_weekends" class="form-label">Foot Fall in Weekends</label>
                                     <input type="number" class="form-control" name="foot_fall_weekends" id="foot_fall_weekends" min="0"
-                                        placeholder="Enter Foot Fall in Weekends" value="">
+                                        placeholder="Enter Foot Fall in Weekends" value=""
+                                        {% if current_user.role.name|lower != "admin" %}required{% endif %}>
                                 </div>
 
                             </div>
@@ -217,7 +227,8 @@
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <label for="user" class="form-label">Onboarded by</label>
-                                    <select class="form-select" name="user" id="user" >
+                                    <select class="form-select" name="user" id="user"
+                                        {% if current_user.role.name|lower != "admin" %}required{% endif %}>
                                         <option value="" disabled selected hidden>-- Select Onboarded by --</option>
                                         {% for user in users %}
                                         <option value="{{ user.id }}">{{ user.username }}</option>
@@ -228,19 +239,23 @@
                                 <div class="col-md-4">
                                     <label for="full_name" class="form-label">Store Incharge/Manager Name</label>
                                     <input type="text" class="form-control" name="full_name" id="full_name"
-                                        placeholder="Enter Full Name" value="" >
+                                        placeholder="Enter Full Name" value=""
+                                        {% if current_user.role.name|lower != "admin" %}required{% endif %}>
                                 </div>
 
                                 <div class="col-md-4">
                                     <label for="phone_number" class="form-label">Phone Number</label>
-                                    <input type="tel" class="form-control" name="phone_number" id="phone_number"
-                                        placeholder="Enter phone No" value="" >
+                                    <input type="tel" class="form-control" name="phone_number" id="phone_number" oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                        pattern="[0-9]{10,}" maxlength="15"
+                                        placeholder="Enter phone No" value=""
+                                        {% if current_user.role.name|lower != "admin" %}required{% endif %} >
                                 </div>
 
                                 <div class="col-md-4">
                                     <label for="email" class="form-label">Email</label>
                                     <input type="email" class="form-control" name="email" id="email"
-                                        placeholder="Enter a valid Email Address" value="">
+                                        placeholder="Enter a valid Email Address" value=""
+                                        {% if current_user.role.name|lower != "admin" %}required{% endif %}>
                                 </div>
 
                                 <div class="col-md-4">
@@ -275,8 +290,6 @@
                                 <input class="form-control" type="file" name="shop_images" id="shop_images" multiple accept="image/*">
                             </div>
                             <div class="row" id="shopImagesPreview"></div>
-
-
                         </div>
                     </div>
 
