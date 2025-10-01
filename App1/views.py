@@ -547,10 +547,7 @@ def customer_table(request):
     if not current_user:
         return redirect('login')
 
-    if current_user.role.name.lower() == "admin":
-        customers = Customer.objects.all()
-    else:
-        customers = Customer.objects.filter(user=current_user)
+    customers = Customer.objects.all()
 
     context = {
         'customers': customers,

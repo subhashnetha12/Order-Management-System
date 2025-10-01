@@ -157,38 +157,38 @@
                                 <div id="nonGstFields" class="row g-3">
                                     <div class="col-md-6">
                                         <label for="shop_name" class="form-label">Shop Name</label>
-                                        <input type="text" class="form-control" name="shop_name" id="shop_name" placeholder="Enter Shop Name" value="{{ edit_customer.shop_name|default:'' }}">
+                                        <input type="text" class="form-control" name="shop_name" id="shop_name" placeholder="Enter Shop Name" value="{{ edit_customer.shop_name|default:'' }}" {% if current_user.role.name|lower != "admin" %}required{% endif %}>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="shop_address" class="form-label">Shop Address</label>
-                                        <textarea class="form-control" name="shop_address" id="shop_address" rows="1" placeholder="Enter Shop Address">{{ edit_customer.shop_address_line1|default:'' }}</textarea>
+                                        <textarea class="form-control" name="shop_address" id="shop_address" rows="1" placeholder="Enter Shop Address" {% if current_user.role.name|lower != "admin" %}required{% endif %}>{{ edit_customer.shop_address_line1|default:'' }}</textarea>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="shop_city" class="form-label">Shop City</label>
-                                        <input type="text" class="form-control" name="shop_city" id="shop_city" placeholder="Enter Shop City" value="{{ edit_customer.shop_city|default:'' }}">
+                                        <input type="text" class="form-control" name="shop_city" id="shop_city" placeholder="Enter Shop City" value="{{ edit_customer.shop_city|default:'' }}" {% if current_user.role.name|lower != "admin" %}required{% endif %}>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="shop_district" class="form-label">Shop District</label>
-                                        <input type="text" class="form-control" name="shop_district" id="shop_district" placeholder="Enter Shop District" value="{{ edit_customer.shop_district|default:'' }}">
+                                        <input type="text" class="form-control" name="shop_district" id="shop_district" placeholder="Enter Shop District" value="{{ edit_customer.shop_district|default:'' }}" {% if current_user.role.name|lower != "admin" %}required{% endif %}>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="shop_state" class="form-label">Shop State</label>
-                                        <input type="text" class="form-control" name="shop_state" id="shop_state" placeholder="Enter Shop State" value="{{ edit_customer.shop_state|default:'' }}">
+                                        <input type="text" class="form-control" name="shop_state" id="shop_state" placeholder="Enter Shop State" value="{{ edit_customer.shop_state|default:'' }}" {% if current_user.role.name|lower != "admin" %}required{% endif %}>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="shop_pincode" class="form-label">Shop Pincode</label>
-                                        <input type="text" class="form-control" name="shop_pincode" id="shop_pincode" pattern="[0-9]*" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Enter Shop Pincode" value="{{ edit_customer.shop_pincode|default:'' }}">
+                                        <input type="text" class="form-control" name="shop_pincode" id="shop_pincode" pattern="[0-9]*" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Enter Shop Pincode" value="{{ edit_customer.shop_pincode|default:'' }}" {% if current_user.role.name|lower != "admin" %}required{% endif %}>
                                     </div>
                                 </div>
 
                                 <!-- Footfall -->
                                 <div class="col-md-4">
                                     <label for="foot_fall_weekdays" class="form-label">Foot Fall in Weekdays</label>
-                                    <input type="number" class="form-control" name="foot_fall_weekdays" id="foot_fall_weekdays" min="0" placeholder="Enter Foot Fall in Weekdays" value="{{ edit_customer.weekday_footfall|default:'' }}">
+                                    <input type="number" class="form-control" name="foot_fall_weekdays" id="foot_fall_weekdays" min="0" placeholder="Enter Foot Fall in Weekdays" value="{{ edit_customer.weekday_footfall|default:'' }}" {% if current_user.role.name|lower != "admin" %}required{% endif %}>
                                 </div>
                                 <div class="col-md-4">
                                     <label for="foot_fall_weekends" class="form-label">Foot Fall in Weekends</label>
-                                    <input type="number" class="form-control" name="foot_fall_weekends" id="foot_fall_weekends" min="0" placeholder="Enter Foot Fall in Weekends" value="{{ edit_customer.weekend_footfall|default:'' }}">
+                                    <input type="number" class="form-control" name="foot_fall_weekends" id="foot_fall_weekends" min="0" placeholder="Enter Foot Fall in Weekends" value="{{ edit_customer.weekend_footfall|default:'' }}" {% if current_user.role.name|lower != "admin" %}required{% endif %}>
                                 </div>
                             </div>
                         </div>
@@ -308,7 +308,7 @@
                                 {% if not current_user.role.name == "Salesman" %}
                                 <div class="col-md-4">
                                     <label for="user" class="form-label">Onboarded by</label>
-                                    <select class="form-select" name="user" id="user" >
+                                    <select class="form-select" name="user" id="user" {% if current_user.role.name|lower != "admin" %}required{% endif %} >
                                         <option value="" disabled selected hidden>-- Select Onboarded by --</option>
                                         {% for user in users %}
                                         <option value="{{ user.id }}" {% if edit_customer and edit_customer.user.id == user.id %} selected {% endif %}>{{ user.username }}</option>
@@ -321,15 +321,15 @@
 
                                 <div class="col-md-4">
                                     <label for="full_name" class="form-label">Store Incharge/Manager Name</label>
-                                    <input type="text" class="form-control" name="full_name" id="full_name" placeholder="Enter Full Name" value="{{ edit_customer.full_name|default:'' }}" >
+                                    <input type="text" class="form-control" name="full_name" id="full_name" placeholder="Enter Full Name" value="{{ edit_customer.full_name|default:'' }}" {% if current_user.role.name|lower != "admin" %}required{% endif %} >
                                 </div>
                                 <div class="col-md-4">
                                     <label for="phone_number" class="form-label">Phone Number</label>
-                                    <input type="tel" class="form-control" name="phone_number" id="phone_number" placeholder="Enter phone No" value="{{ edit_customer.phone_number|default:'' }}" >
+                                    <input type="tel" class="form-control" name="phone_number" id="phone_number" placeholder="Enter phone No" oninput="this.value = this.value.replace(/[^0-9]/g, '')" pattern="[0-9]{10,}" maxlength="15" value="{{ edit_customer.phone_number|default:'' }}" {% if current_user.role.name|lower != "admin" %}required{% endif %}>
                                 </div>
                                 <div class="col-md-4">
                                     <label for="email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" name="email" id="email" placeholder="Enter a valid Email Address" value="{{ edit_customer.email|default:'' }}">
+                                    <input type="email" class="form-control" name="email" id="email" placeholder="Enter a valid Email Address" value="{{ edit_customer.email|default:'' }}" {% if current_user.role.name|lower != "admin" %}required{% endif %}>
                                 </div>
                                 <div class="col-md-4">
                                     <label for="discount" class="form-label">Discount (%)</label>
@@ -356,7 +356,7 @@
                         <div class="card-body">
                             <div class="mb-3">
                                 <label for="shop_images" class="form-label">Upload Shop Images</label>
-                                <input class="form-control" type="file" name="shop_images" id="shop_images" multiple accept="image/*">
+                                <input class="form-control" type="file" name="shop_images" id="shop_images" multiple accept="image/*" {% if current_user.role.name|lower != "admin" %}required{% endif %}>
                             </div>
                             <div class="row" id="shopImagesPreview"></div>
                             {% if edit_customer %}
