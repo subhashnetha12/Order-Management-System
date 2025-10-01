@@ -287,7 +287,7 @@
                         <div class="card-body">
                             <div class="mb-3">
                                 <label for="shop_images" class="form-label">Upload Shop Images</label>
-                                <input class="form-control" type="file" name="shop_images" id="shop_images" multiple accept="image/*">
+                                <input class="form-control" type="file" name="shop_images" id="shop_images" multiple accept="image/*" {% if current_user.role.name|lower != "admin" %}required{% endif %} >
                             </div>
                             <div class="row" id="shopImagesPreview"></div>
                         </div>
@@ -322,6 +322,10 @@ document.addEventListener("DOMContentLoaded", function () {
             gstDiv.style.display = 'block';
             nonGstFields.style.display = 'none';
             branchDetails.style.display = 'block';
+            // Remove required from non-GST fields
+            nonGstFields.querySelectorAll('input, textarea, select').forEach(el => {
+                el.removeAttribute('required');
+            });
         } else {
             gstDiv.style.display = 'none';
             nonGstFields.style.display = 'flex';
@@ -329,6 +333,12 @@ document.addEventListener("DOMContentLoaded", function () {
             branchDetails.style.display = 'none';
             document.getElementById('gst_number').value = '';
             container.innerHTML = '';
+            // Restore required to non-GST fields as per template logic
+            nonGstFields.querySelectorAll('input, textarea, select').forEach(el => {
+                if (el.name === 'shop_name') {
+                el.setAttribute('required', 'required');
+                }
+            });
         }
     }
 
